@@ -1,0 +1,10 @@
+{
+        "name": "Thimotron",
+        "version": "0.1.0",
+        "description": "A reddit bot to do my bidding",
+        "homepage": "https://github.com/Thimoteus/Thimotron",
+        "author": "Thimoteus",
+        "dependencies": {
+                "snoocore": ">= 2.1.0"
+        }
+}
