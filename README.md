@@ -1,4 +1,4 @@
-# Thimotron
+# Thimotron [![Dependency Status](https://david-dm.org/Thimoteus/Thimotron.svg)](https://david-dm.org/Thimoteus/Thimotron)
 
 A reddit bot to do my bidding.
 
