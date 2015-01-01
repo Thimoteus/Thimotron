@@ -1,0 +1,16 @@
+{
+        "login": {
+                "username": "your username",
+                "password": "your password"
+        },
+        "oauth": {
+                "client_id": "your app id",
+                "client_secret": "your app secret"
+        },
+        "db": {
+                "name": "name of the db",
+                "collections": ["mentions"]
+        },
+        "updateMethod": "one of 'reply', 'pm'",
+        "updateRecipient": "a username or fullname of a thread"
+}
