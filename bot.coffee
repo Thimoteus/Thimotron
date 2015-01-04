@@ -1,7 +1,6 @@
 #!/usr/bin/coffee
 root = this
 # set a global namespace
-util = require 'util'
 config = require './config'
 # imports settings and package info
 settings = config.settings
@@ -94,6 +93,7 @@ processReplies = (res) ->
                         sr: reply.data.subreddit
                         author: reply.data.author
                         body: reply.data.body
+                        notified: false
         if re.test selfText.selftext
                 mentions.push
                         kind: 'selftext'
@@ -119,20 +119,43 @@ search = (sub) ->
         links = fetchNewLinks(sub)
         comments = links.then(fetchComments)
 
-searchAllSubs = -> subs.forEach (sub) -> search(sub)
+searchAllSubs = ->
+        subs.forEach (sub) -> search(sub)
+        setTimeout(searchAllSubs, 10000)
+
+sendNotificationOf = (ment) ->
+        sendReply = ->
+                reddit("/api/comment").post
+                        api_type: 'json'
+                        text: msg
+                        thing_id: recipient
+                .then(console.log "Reply sent")
+        switch ment.kind
+                when "selftext" then link = "http://redd.it/#{ment.id}"
+                when "reply" then link = "https://www.reddit.com/r/#{ment.sr}/comments/#{ment.link_id}/#{pack.name}/#{ment.id}"
+        msg = """
+        /u/#{ment.author} has mentioned #{settings.search_string}
+        [here](#{link}).
+        """
+        switch updateMethod
+                when "PM" then sendPm()
+                when "reply" then sendReply()
 
 saveMentions = (ments) ->
-        mentExistsInDb = (ment) ->
-                exists = (ct) -> ct is 0
-                return db.mentions.find({id: ment.id}).limit(1).count().then(exists)
-        ments.forEach (ment, i) ->
-                mentExistsInDb(ment).then (e) ->
-                        if e
-                                db.mentions.insert(ment)
-                                console.log "Inserting #{ment.id} to database."
-                        else
-                                console.log "#{ment.id} is already in database."
+        commitAndNotify = (ment, exists) ->
+                if exists
+                        console.log "#{ment.id} is already in database."
+                else
+                        sendNotificationOf(ment)
+                        db.mentions.insert(ment)
+                        console.log "Inserting #{ment.id} to database."
 
+        mentExistsInDb = (ment) ->
+                exists = (ct) -> ct > 0
+                return db.mentions.find({id: ment.id}).limit(1).count().then(exists)
+
+        ments.forEach (ment) ->
+                mentExistsInDb(ment).then (exists) -> commitAndNotify(ment, exists)
 
 reddit.auth()
 .then(searchAllSubs)
