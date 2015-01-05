@@ -12,9 +12,9 @@ Snoocore = require 'snoocore'
 mongo = require 'promised-mongo'
 # the database
 
-dbName = settings.db.name
+dbName = settings.db.name or "bot"
 # the name of the database to use
-dbCollections = settings.db.collections
+dbCollections = settings.db.collections or ["mentions"]
 # collections in the db
 db = mongo(dbName, dbCollections)
 # now we're connected
@@ -32,6 +32,7 @@ secret = settings.oauth.client_secret
 scopes = ['identity', 'read', 'privatemessages', 'submit']
 # get the scopes you require here: https://www.reddit.com/dev/api
 
+cycleTime = settings.cycle_time or "60000"
 updateMethod = settings.updateMethod
 # one of "reply" or "PM"
 recipient = settings.updateRecipient
@@ -120,19 +121,29 @@ search = (sub) ->
         comments = links.then(fetchComments)
 
 searchAllSubs = ->
+        console.log "Beginning loop."
         subs.forEach (sub) -> search(sub)
-        setTimeout(searchAllSubs, 10000)
+        setTimeout(searchAllSubs, cycleTime)
 
 sendNotificationOf = (ment) ->
+        sendPm = ->
+                reddit("/api/compose").post
+                        api_type: 'json'
+                        subject: "New mention"
+                        text: msg
+                        to: recipient
+                .then(console.log "PM notification of #{ment.id} sent.")
         sendReply = ->
                 reddit("/api/comment").post
                         api_type: 'json'
                         text: msg
                         thing_id: recipient
-                .then(console.log "Reply sent")
+                .then(console.log "Reply notification of #{ment.id} sent.")
         switch ment.kind
-                when "selftext" then link = "http://redd.it/#{ment.id}"
-                when "reply" then link = "https://www.reddit.com/r/#{ment.sr}/comments/#{ment.link_id}/#{pack.name}/#{ment.id}"
+                when "selftext"
+                        link = "http://redd.it/#{ment.id}"
+                when "reply"
+                        link = "https://www.reddit.com/r/#{ment.sr}/comments/#{ment.link_id}/#{pack.name}/#{ment.id}"
         msg = """
         /u/#{ment.author} has mentioned #{settings.search_string}
         [here](#{link}).
@@ -143,9 +154,7 @@ sendNotificationOf = (ment) ->
 
 saveMentions = (ments) ->
         commitAndNotify = (ment, exists) ->
-                if exists
-                        console.log "#{ment.id} is already in database."
-                else
+                if not exists
                         sendNotificationOf(ment)
                         db.mentions.insert(ment)
                         console.log "Inserting #{ment.id} to database."
@@ -157,6 +166,8 @@ saveMentions = (ments) ->
         ments.forEach (ment) ->
                 mentExistsInDb(ment).then (exists) -> commitAndNotify(ment, exists)
 
+console.log "#{username} is now online."
 reddit.auth()
+.then(console.log "#{username} is logged in.")
 .then(searchAllSubs)
 .done()
