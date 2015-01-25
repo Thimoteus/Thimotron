@@ -1,14 +1,28 @@
 {
-        "name": "Thimotron",
-        "version": "0.1.1",
-        "description": "A reddit bot to do my bidding",
-        "homepage": "https://github.com/Thimoteus/Thimotron",
-        "author": "Thimoteus",
-        "dependencies": {
-                "snoocore": "~ 2.1.0",
-                "promised-mongo": "~ 0.11.1"
-        },
-        "scripts": {
-                "start": "bash start.sh"
-        }
+  "name": "thimotron",
+  "version": "1.0.0-release",
+  "description": "A reddit bot to do my bidding",
+  "homepage": "https://github.com/Thimoteus/Thimotron",
+  "author": "Thimoteus",
+  "repository": {
+    "type": "git",
+    "url": "github.com:Thimoteus/Thimotron.git"
+  },
+  "dependencies": {
+    "LiveScript": "^1.3.1",
+    "jaraw": "^0.1.3-alpha4",
+    "modular-bot": "^1.0.1",
+    "mongojs": "^0.18.1",
+    "prelude-ls": "^1.1.1",
+    "request": "^2.51.0"
+  },
+  "scripts": {
+    "start": "npm run bot",
+    "bot-lsc": "lsc src/index.ls",
+    "bot": "npm run compile && node build/index.js",
+    "compile": "lsc -c src/ -o build/"
+  },
+  "devDependencies": {
+    "LiveScript": "^1.3.1"
+  }
 }
