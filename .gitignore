@@ -3,4 +3,5 @@ data
 settings.json
 log.txt
 .exrc
-.sw*
+*.swp
+*.swo
