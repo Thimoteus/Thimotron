@@ -16,13 +16,13 @@ That's it!
 
 ## Modules
 
-# Bailiff
+### Bailiff
 
 ![Status](https://img.shields.io/badge/status-ready-green.svg)
 
 This scans /r/KarmaCourt for new cases and sends a PM to you when it finds a well-formatted case. If you respond with "yes", it will send a PM to the defendant with a list of charges and a link to the KarmaCourt case.
 
-# Image Scraper
+### Image Scraper
 
 ![Status](https://img.shields.io/badge/status-ready-green.svg)
 
@@ -30,7 +30,7 @@ This scans a list of `subreddits` for up to `image_limit` many imgur links (only
 
 It only runs once, unlike the `bailiff` and `search` modules.
 
-# Search
+### Search
 
 ![Status](https://img.shields.io/badge/status-not ready-red.svg)
 
