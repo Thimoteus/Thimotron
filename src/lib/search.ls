@@ -1,0 +1,55 @@
+global <<< require 'prelude-ls'
+{repeat, simplify-listing, send-pm, commit-array-to-db} = require './core'
+# TODO: import settings, export modules
+const re = do ->
+   flag = if settings.ignore_case then \ig else \g
+   new RegExp settings.search_string, flag
+
+search = (opts, cb = id) !-->
+   text-property = opts.text-property
+   after = opts.after or false
+   limit = opts.limit or 100
+
+   parse-text = -> if re.test it[text-property] then return true else return false
+   recurse = after is true or is-type 'String' after
+   params = limit: limit
+   if recurse => params.after = after
+
+   (sub) <- subs.forEach
+   (err, res, bod) <- robot.get "/r/#{sub}/#{url-param}.json" params
+   if err or not res => return say "Something went wrong, search"
+   if res => if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, search"
+
+   try
+      parsed-text = bod |> simplify-listing |> filter parse-text
+   catch
+      if e instanceof SyntaxError
+         say "Reddit took too long to respond"
+         return
+      else
+         say res.status-code if res?.status-code?
+         say bod if bod?
+         return
+
+   cb parsed-text
+   if recurse
+      search {after: JSON.parse(bod).data.after, url-param: url-param, text-property: text-property}, cb
+
+search-self-texts = search {url-param: 'new', text-property: 'selftext'}
+search-comments = search {url-param: 'comments', text-property: 'body'}
+search-all-titles = search {url-param: 'comments', text-property: 'body'}
+
+pm-updates = (array) ->
+   return if array.length is 0
+   msg = "`The following are mentions you may be interested in:`"
+   array.forEach (post) ->
+      | post.name is /t3/ => msg := msg + "\n\n> `#{post.author}` [posted](#{post.url}) `in` /r/#{post.subreddit}"
+      | post.name is /t1/
+         url = "/r/#{post.subreddit}/comments/#{join '' post.link_id[3 to]}/#{username}/#{post.id}"
+         msg := msg + "\n\n> /u/#{post.author} [posted](#{url}) in /r/#{post.subreddit}"
+   msg += "\n\n`This has been a service by #username`"
+   send-pm "Someone mentioned #{settings.search_string}", msg, recipient
+
+repeat-self-texts-search = -> repeat cycle-time, search-self-texts, 'self-texts-search', (posts) -> commit-posts-to-db posts, 'mentions', pm-updates
+repeat-comments-search = -> repeat cycle-time, search-comments, 'comments-search', (comments) -> commit-posts-to-db comments, 'mentions', pm-updates
+
