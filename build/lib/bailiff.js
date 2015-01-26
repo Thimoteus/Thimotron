@@ -1,9 +1,19 @@
 (function(){
-  var ref$, db, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, settings, subreddit, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromPm, getChargesFromPm, getCaseLinkFromPm, bulletify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, checkCases, bailiff;
+  var ref$, db, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, settings, subreddit, username, cheekySayings, getRandomCheekySaying, getLinkArchive, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromPm, getChargesFromPm, getCaseLinkFromPm, bulletify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, checkCases, bailiff;
   import$(global, require('prelude-ls'));
   ref$ = require('./core'), db = ref$.db, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
   settings = require('../../settings').modules.bailiff;
   subreddit = settings.subreddit;
+  username = robot.options.login.username;
+  cheekySayings = "YOUR FLAWED ATTEMPTS AT EVADING JUSTICE HAVE FAILED.";
+  getRandomCheekySaying = function(){
+    var ind;
+    ind = floor(Math.random() * cheekySayings.length);
+    return cheekySayings[ind];
+  };
+  getLinkArchive = function(url){
+    return "https://archive.today/?run=1&url=" + encodeURIComponent(url);
+  };
   getDefendantsFromTitle = function(title){
     var defendants, users;
     defendants = /.+VS\.?(.+)FOR.+/gi.exec(title);
@@ -15,7 +25,7 @@
   };
   getChargesFromBody = function(body){
     var charges;
-    charges = recurseThroughRe(/^\*\*CHARGE:\*\*\s*(.+)$/gm, body);
+    charges = recurseThroughRe(/^\*\*CHARGE:?\*\*\s*(.+)$/gm, body);
     return charges;
   };
   getDefendantsFromPm = function(pm){
@@ -67,7 +77,7 @@
     defendants));
     summons = summonsText(charges, caseLink);
     caseName = /http:\/\/redd\.it\/(\w{6})/.exec(caseLink)[1];
-    msg = "`$ declare-bailiffness-to-court()`\n\n`I AM " + username + ". I WILL BE THE BAILIFFBOT FOR THIS CASE.`\n\n`$ summon-scumbags-to-court()`\n\n`THE FOLLOWING DEFENDANT(S) HAVE BEEN AUTOMATICALLY SUMMONED:`\n\n" + defendants + "\n\n`$ print summons-text()`\n\n`THE SUMMONS TEXT IS AS FOLLOWS:`\n\n---\n---\n\n" + summons + "\n\n---\n---\n\n`$ exit()`\n\n`THE BAILIFFBOT WILL NOW UNDERGO COMPUTRONIC SLEEP PROCEDURES. GOODBYE!`";
+    msg = "`I AM " + username + ". I WILL BE THE BAILIFFBOT FOR THIS CASE.`\n\n`THE FOLLOWING SCUMBAG(S) HAVE BEEN AUTOMATICALLY SUMMONED:`\n\n" + defendants + "\n\n`THE SUMMONS TEXT IS AS FOLLOWS:`\n\n---\n---\n\n" + summons + "\n\n---\n---\n\n`THE BAILIFFBOT WILL NOW UNDERGO COMPUTRONIC SLEEP PROCEDURES. GOODBYE!`";
     return replyTo("t3_" + caseName, msg);
   };
   checkMail = function(){
@@ -78,10 +88,8 @@
       if (err || !res) {
         return say("Something went wrong, bailiff-get-messages");
       }
-      if (res) {
-        if (res.statusCode !== 200) {
-          return say("Something went wrong: " + res.statusCode + ", bailiff-get-messages");
-        }
+      if (res.statusCode !== 200) {
+        return say("Something went wrong: " + res.statusCode + ", bailiff-get-messages");
       }
       sentByMe = function(it){
         return it.subject === 'Are these right?';

@@ -1,8 +1,9 @@
 global <<< require 'prelude-ls'
-{robot, repeat, simplify-listing, send-pm, commit-array-to-db} = require './core'
+{say, robot, repeat, simplify-listing, send-pm, commit-array-to-db} = require './core'
 settings = require '../../settings' .modules.search
 subs = settings.subreddits
 cycle-time = settings.cycle_time or 60000
+username = robot.options.login.username
 
 const re = do ->
    flag = if settings.ignore_case then \ig else \g

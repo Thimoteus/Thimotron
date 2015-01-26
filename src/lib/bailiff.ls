@@ -2,6 +2,17 @@ global <<< require 'prelude-ls'
 {db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
 settings = require '../../settings' .modules.bailiff
 subreddit = settings.subreddit
+username = robot.options.login.username
+
+cheeky-sayings =
+   * "YOUR FLAWED ATTEMPTS AT EVADING JUSTICE HAVE FAILED."
+
+
+get-random-cheeky-saying = ->
+   ind = floor Math.random() * cheeky-sayings.length
+   return cheeky-sayings[ind]
+
+get-link-archive = (url) -> return "https://archive.today/?run=1&url=#{encodeURIComponent url}"
 
 get-defendants-from-title = (title) ->
    defendants = /.+VS\.?(.+)FOR.+/gi.exec title
@@ -10,7 +21,7 @@ get-defendants-from-title = (title) ->
    return users
 
 get-charges-from-body = (body) ->
-   charges = recurse-through-re /^\*\*CHARGE:\*\*\s*(.+)$/gm, body
+   charges = recurse-through-re /^\*\*CHARGE:?\*\*\s*(.+)$/gm, body
    return charges
 
 get-defendants-from-pm = (pm) ->
@@ -62,17 +73,11 @@ declare-bailiffness-to-court = (case-link, charges, defendants) ->
    summons = summons-text charges, case-link
    case-name = /http:\/\/redd\.it\/(\w{6})/.exec case-link .1
    msg = """
-   `$ declare-bailiffness-to-court()`
-
    `I AM #username. I WILL BE THE BAILIFFBOT FOR THIS CASE.`
 
-   `$ summon-scumbags-to-court()`
-
-   `THE FOLLOWING DEFENDANT(S) HAVE BEEN AUTOMATICALLY SUMMONED:`
+   `THE FOLLOWING SCUMBAG(S) HAVE BEEN AUTOMATICALLY SUMMONED:`
 
    #defendants
-
-   `$ print summons-text()`
 
    `THE SUMMONS TEXT IS AS FOLLOWS:`
 
@@ -84,8 +89,6 @@ declare-bailiffness-to-court = (case-link, charges, defendants) ->
    ---
    ---
 
-   `$ exit()`
-
    `THE BAILIFFBOT WILL NOW UNDERGO COMPUTRONIC SLEEP PROCEDURES. GOODBYE!`
    """
    reply-to "t3_#{case-name}", msg
@@ -93,7 +96,7 @@ declare-bailiffness-to-court = (case-link, charges, defendants) ->
 check-mail = ->
    (err, res, bod) <- robot.get "/message/messages.json", limit: 5
    if err or not res => return say "Something went wrong, bailiff-get-messages"
-   if res => if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, bailiff-get-messages"
+   if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, bailiff-get-messages"
 
    sent-by-me = -> it.subject is 'Are these right?'
    has-replies = -> it.replies isnt ''

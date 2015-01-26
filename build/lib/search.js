@@ -1,10 +1,11 @@
 (function(){
-  var ref$, robot, repeat, simplifyListing, sendPm, commitArrayToDb, settings, subs, cycleTime, re, search, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatTitleSearch, slice$ = [].slice;
+  var ref$, say, robot, repeat, simplifyListing, sendPm, commitArrayToDb, settings, subs, cycleTime, username, re, search, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatTitleSearch, slice$ = [].slice;
   import$(global, require('prelude-ls'));
-  ref$ = require('./core'), robot = ref$.robot, repeat = ref$.repeat, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, commitArrayToDb = ref$.commitArrayToDb;
+  ref$ = require('./core'), say = ref$.say, robot = ref$.robot, repeat = ref$.repeat, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, commitArrayToDb = ref$.commitArrayToDb;
   settings = require('../../settings').modules.search;
   subs = settings.subreddits;
   cycleTime = settings.cycle_time || 60000;
+  username = robot.options.login.username;
   re = function(){
     var flag;
     flag = settings.ignore_case ? 'ig' : 'g';

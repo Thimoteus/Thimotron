@@ -5,3 +5,5 @@ log.txt
 .exrc
 *.swp
 *.swo
+tags
+*.tags
