@@ -4,7 +4,7 @@ mongo = require 'mongojs'
 
 const settings = require '../../settings'
 const db-name = settings.db.name or 'bot'
-const db-collections = <[ mentions receivedPms acknowledgedPms bailiffCases ]>
+const db-collections = <[ mentions receivedPms acknowledgedPms bailiffCases bailiffEvidence ]>
 const db = mongo db-name, db-collections
 
 const user-agent = "#{settings.info.name}@#{settings.info.version or '1.0.0'} by #{settings.info.author or ''}"
@@ -71,14 +71,19 @@ commit-array-to-db = (array, collection, cb = id) ->
    arr = []
    if array.length > 0
       (element, i) <- array.forEach
-      (err, count) <- db[collection].find name: element.name .limit 1 .count
-      if count is 0
+      (exists) <- check-if-element-in-db element, collection
+      if not exists
          db[collection].insert element
          say "inserted #{element.name} to database"
          arr.push element
       if i == array.length - 1 => return cb arr
    else
       return cb arr
+
+check-if-element-in-db = (el, collection, cb = id) ->
+   db[collection].find name: el.name .limit 1 .count (err, count) ->
+      ret = count != 0
+      cb ret
 
 # sends a reply to `dest` with message `text`
 reply-to = (dest, text) ->
@@ -92,17 +97,17 @@ reply-to = (dest, text) ->
       return say "Reply sent:\nDest: #dest\nText: #text"
 
 # sends a pm with subject `title` to `recipient` with message `body`
-send-pm = (title, body, recipient) ->
-   if /\/u\//.test recipient => recipient = unchars recipient[3 to]
+send-pm = (title, body, receiver) ->
+   if /\/u\//.test receiver => receiver = unchars receiver[3 to]
    params =
       api_type: 'json'
       subject: title
       text: body
-      to: recipient
+      to: receiver
    robot.post "/api/compose", params, (err, res, bod) ->
       if err or not res => return say "Something went wrong, send-pm"
       if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, send-pm"
-      return say "PM sent:\nRecipient: #recipient\nTitle: #title\nBody: #body"
+      return say "PM sent:\nRecipient: #receiver\nTitle: #title\nBody: #body"
 
 module.exports =
    login: login
@@ -116,3 +121,4 @@ module.exports =
    say: say
    robot: robot
    db: db
+   check-if-element-in-db: check-if-element-in-db

@@ -1,18 +1,21 @@
 (function(){
-  var ref$, db, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, settings, subreddit, username, cheekySayings, getRandomCheekySaying, getLinkArchive, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromPm, getChargesFromPm, getCaseLinkFromPm, bulletify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, checkCases, bailiff;
+  var request, ref$, checkIfElementInDb, db, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, settings, subreddit, username, sameLength, cheekySayings, getRandomCheekySaying, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromPm, getChargesFromPm, getCaseLinkFromPm, bulletify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, checkCases, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff;
   import$(global, require('prelude-ls'));
-  ref$ = require('./core'), db = ref$.db, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
+  request = require('request');
+  ref$ = require('./core'), checkIfElementInDb = ref$.checkIfElementInDb, db = ref$.db, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
   settings = require('../../settings').modules.bailiff;
   subreddit = settings.subreddit;
   username = robot.options.login.username;
-  cheekySayings = "YOUR FLAWED ATTEMPTS AT EVADING JUSTICE HAVE FAILED.";
+  sameLength = over(curry$(function(x$, y$){
+    return x$ === y$;
+  }), function(it){
+    return it.length;
+  });
+  cheekySayings = ["YOUR FLAWED ATTEMPTS AT EVADING JUSTICE HAVE FAILED.", "WHY AM I TYPING IN ALL CAPS?", "DISPENSATION OF JUSTICE COMMENCES NOW.", "IS THIS THE REAL LIFE?", "WHERE IS YOUR GOD NOW?", "ARE YOU NOT ENTERTAINED?", "YOU HAD ME AT HELLO!", "YOU CAN'T HANDLE THE TRUTH.", "AM I HUMAN? AM I DANCER?", "TEACH ME HOW TO LOVE."];
   getRandomCheekySaying = function(){
     var ind;
     ind = floor(Math.random() * cheekySayings.length);
     return cheekySayings[ind];
-  };
-  getLinkArchive = function(url){
-    return "https://archive.today/?run=1&url=" + encodeURIComponent(url);
   };
   getDefendantsFromTitle = function(title){
     var defendants, users;
@@ -137,49 +140,111 @@
       }
     });
   };
-  checkCases = function(){
+  checkCases = function(cases){
+    var i$, len$, results$ = [];
+    for (i$ = 0, len$ = cases.length; i$ < len$; ++i$) {
+      results$.push((fn$.call(this, cases[i$])));
+    }
+    return results$;
+    function fn$(post){
+      return db['bailiffCases'].find({
+        name: post.name
+      }).limit(1).count(function(err, count){
+        var defendants, charges, title, msg;
+        defendants = getDefendantsFromTitle(post.title);
+        charges = getChargesFromBody(post.selftext);
+        if (defendants.length > 0 && charges.length > 0 && count === 0) {
+          title = 'Are these right?';
+          defendants = map(function(it){
+            return it.toLowerCase();
+          }, defendants);
+          charges = bulletify(charges);
+          defendants = bulletify(defendants);
+          msg = "Concerning [this post](http://redd.it/" + post.id + "):\n\n**DEFENDANTS**:\n\n" + defendants + "\n\n**CHARGES**:\n\n" + charges;
+          sendPm(title, msg, recipient);
+          return commitArrayToDb([post], 'bailiffCases');
+        }
+      });
+    }
+  };
+  submitEvidenceToArchive = function(post, cb){
+    var getRedirectLinkFrom, selftext;
+    cb == null && (cb = id);
+    getRedirectLinkFrom = function(bod){
+      return /document\.location\.replace\("(.+)"\)},1000\)/.exec(bod)[1];
+    };
+    selftext = post.selftext;
+    return checkIfElementInDb(post, 'bailiffEvidence', function(exists){
+      var evidence, archivedEvidence, i$, len$, results$ = [];
+      if (!exists) {
+        evidence = getEvidenceFrom(selftext);
+        archivedEvidence = [];
+        for (i$ = 0, len$ = evidence.length; i$ < len$; ++i$) {
+          results$.push((fn$.call(this, evidence[i$])));
+        }
+        return results$;
+      }
+      function fn$(url){
+        var params;
+        say("making request to archive.today");
+        params = {
+          url: 'https://archive.today/submit/',
+          form: {
+            url: url
+          }
+        };
+        return request.post(params, function(err, res, bod){
+          if (err || !res) {
+            return say("Something went wrong, submit-evidence-to-archive");
+          }
+          archivedEvidence.push(getRedirectLinkFrom(bod));
+          if (sameLength(archivedEvidence, evidence)) {
+            return cb(archivedEvidence);
+          }
+        });
+      }
+    });
+  };
+  getEvidenceFrom = function(selftext){
+    var rx, evidence;
+    rx = /^\[EXHIBIT [A-Z]{1}\]\((.+)\)/gm;
+    evidence = recurseThroughRe(rx, selftext);
+    return evidence;
+  };
+  reportEvidenceToCourt = function(archive, post){
+    var postableEvidence, msg;
+    postableEvidence = bulletify(archive);
+    msg = "`I AM " + username + ". " + getRandomCheekySaying() + "`\n\n`THE EVIDENCE HAS BEEN ARCHIVED:`\n\n" + postableEvidence;
+    replyTo(post.name, msg);
+    return commitArrayToDb([post], 'bailiffEvidence');
+  };
+  processCases = function(){
     return robot.get("/r/" + subreddit + "/new.json", {
-      limit: 4
+      limit: 2
     }, function(err, res, bod){
-      var posts, i$, len$, results$ = [];
+      var cases, i$, len$, results$ = [];
       if (err || !res) {
         return say("Something went wrong, bailiff-get-new-cases");
       }
-      if (res) {
-        if (res.statusCode !== 200) {
-          return say("Something went wrong: " + res.statusCode + ", bailiff-get-new-cases");
-        }
+      if (res.statusCode !== 200) {
+        return say("Something went wrong: " + res.statusCode + ", bailiff-get-new-cases");
       }
-      posts = simplifyListing(bod);
-      for (i$ = 0, len$ = posts.length; i$ < len$; ++i$) {
-        results$.push((fn$.call(this, posts[i$])));
+      cases = simplifyListing(bod);
+      checkCases(cases);
+      for (i$ = 0, len$ = cases.length; i$ < len$; ++i$) {
+        results$.push((fn$.call(this, cases[i$])));
       }
       return results$;
       function fn$(post){
-        return db['bailiffCases'].find({
-          name: post.name
-        }).limit(1).count(function(err, count){
-          var defendants, charges, title, msg;
-          defendants = getDefendantsFromTitle(post.title);
-          charges = getChargesFromBody(post.selftext);
-          if (defendants.length > 0 && charges.length > 0 && count === 0) {
-            title = 'Are these right?';
-            defendants = map(function(it){
-              return it.toLowerCase();
-            }, defendants);
-            charges = bulletify(charges);
-            defendants = bulletify(defendants);
-            msg = "Concerning [this post](http://redd.it/" + post.id + "):\n\n**DEFENDANTS**:\n\n" + defendants + "\n\n**CHARGES**:\n\n" + charges;
-            sendPm(title, msg, recipient);
-            return commitArrayToDb([post], 'bailiffCases');
-          }
+        return submitEvidenceToArchive(post, function(archivedEvidence){
+          return reportEvidenceToCourt(archivedEvidence, post);
         });
       }
     });
   };
   bailiff = function(){
     checkMail();
-    return checkCases();
+    return processCases();
   };
   module.exports = {
     bailiff: bailiff,
@@ -189,5 +254,18 @@
     var own = {}.hasOwnProperty;
     for (var key in src) if (own.call(src, key)) obj[key] = src[key];
     return obj;
+  }
+  function curry$(f, bound){
+    var context,
+    _curry = function(args) {
+      return f.length > 1 ? function(){
+        var params = args ? args.concat() : [];
+        context = bound ? context || this : this;
+        return params.push.apply(params, arguments) <
+            f.length && arguments.length ?
+          _curry.call(context, params) : f.apply(context, params);
+      } : f;
+    };
+    return _curry();
   }
 }).call(this);

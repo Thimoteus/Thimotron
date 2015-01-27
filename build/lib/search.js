@@ -1,7 +1,7 @@
 (function(){
-  var ref$, say, robot, repeat, simplifyListing, sendPm, commitArrayToDb, settings, subs, cycleTime, username, re, search, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatTitleSearch, slice$ = [].slice;
+  var ref$, recipient, say, robot, repeat, simplifyListing, sendPm, commitArrayToDb, settings, subs, cycleTime, username, re, search, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatTitleSearch, slice$ = [].slice;
   import$(global, require('prelude-ls'));
-  ref$ = require('./core'), say = ref$.say, robot = ref$.robot, repeat = ref$.repeat, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, commitArrayToDb = ref$.commitArrayToDb;
+  ref$ = require('./core'), recipient = ref$.recipient, say = ref$.say, robot = ref$.robot, repeat = ref$.repeat, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, commitArrayToDb = ref$.commitArrayToDb;
   settings = require('../../settings').modules.search;
   subs = settings.subreddits;
   cycleTime = settings.cycle_time || 60000;

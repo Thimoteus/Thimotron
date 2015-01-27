@@ -1,18 +1,27 @@
 global <<< require 'prelude-ls'
-{db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
+require! 'request'
+{check-if-element-in-db, db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
 settings = require '../../settings' .modules.bailiff
 subreddit = settings.subreddit
 username = robot.options.login.username
 
+same-length = (==) `over` (.length)
+
 cheeky-sayings =
    * "YOUR FLAWED ATTEMPTS AT EVADING JUSTICE HAVE FAILED."
-
+   * "WHY AM I TYPING IN ALL CAPS?"
+   * "DISPENSATION OF JUSTICE COMMENCES NOW."
+   * "IS THIS THE REAL LIFE?"
+   * "WHERE IS YOUR GOD NOW?"
+   * "ARE YOU NOT ENTERTAINED?"
+   * "YOU HAD ME AT HELLO!"
+   * "YOU CAN'T HANDLE THE TRUTH."
+   * "AM I HUMAN? AM I DANCER?"
+   * "TEACH ME HOW TO LOVE."
 
 get-random-cheeky-saying = ->
    ind = floor Math.random() * cheeky-sayings.length
    return cheeky-sayings[ind]
-
-get-link-archive = (url) -> return "https://archive.today/?run=1&url=#{encodeURIComponent url}"
 
 get-defendants-from-title = (title) ->
    defendants = /.+VS\.?(.+)FOR.+/gi.exec title
@@ -119,14 +128,9 @@ check-mail = ->
             send-summons case-link, charges, defendants
             declare-bailiffness-to-court case-link, charges, defendants
 
-check-cases = ->
-   (err, res, bod) <- robot.get "/r/#{subreddit}/new.json", limit: 4
-   if err or not res => return say "Something went wrong, bailiff-get-new-cases"
-   if res => if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, bailiff-get-new-cases"
+check-cases = (cases) ->
 
-   posts = simplify-listing bod
-
-   for let post in posts
+   for let post in cases
       (err, count) <- db['bailiffCases'].find name: post.name .limit 1 .count
 
       defendants = get-defendants-from-title post.title
@@ -151,9 +155,62 @@ check-cases = ->
          send-pm title, msg, recipient
          commit-array-to-db [post], 'bailiffCases'
 
+submit-evidence-to-archive = (post, cb = id) ->
+
+   get-redirect-link-from = (bod) -> /document\.location\.replace\("(.+)"\)},1000\)/.exec bod .1
+
+   selftext = post.selftext
+
+   (exists) <- check-if-element-in-db post, 'bailiffEvidence'
+
+   if not exists
+
+      evidence = get-evidence-from selftext
+      archived-evidence = []
+
+      for let url in evidence
+         say "making request to archive.today"
+         params =
+            url: 'https://archive.today/submit/'
+            form:
+               url: url
+         request.post params, (err, res, bod) ->
+            if err or not res => return say "Something went wrong, submit-evidence-to-archive"
+
+            archived-evidence.push get-redirect-link-from bod
+            if archived-evidence `same-length` evidence => cb archived-evidence
+
+get-evidence-from = (selftext) ->
+   rx = /^\[EXHIBIT [A-Z]{1}\]\((.+)\)/gm
+   evidence = recurse-through-re rx, selftext
+   return evidence
+
+report-evidence-to-court = (archive, post) ->
+   postable-evidence = bulletify archive
+   msg = """
+   `I AM #username. #{get-random-cheeky-saying()}`
+
+   `THE EVIDENCE HAS BEEN ARCHIVED:`
+
+   #postable-evidence
+   """
+   reply-to post.name, msg
+   commit-array-to-db [post], 'bailiffEvidence'
+
+process-cases = ->
+   (err, res, bod) <- robot.get "/r/#{subreddit}/new.json", limit: 2
+   if err or not res => return say "Something went wrong, bailiff-get-new-cases"
+   if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, bailiff-get-new-cases"
+
+   cases = simplify-listing bod
+
+   check-cases cases
+   for let post in cases
+      submit-evidence-to-archive post, (archived-evidence) -> report-evidence-to-court archived-evidence, post
+
 bailiff = ->
    check-mail()
-   check-cases()
+   process-cases()
 
 module.exports =
    bailiff: bailiff

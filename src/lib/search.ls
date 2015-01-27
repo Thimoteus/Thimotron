@@ -1,5 +1,5 @@
 global <<< require 'prelude-ls'
-{say, robot, repeat, simplify-listing, send-pm, commit-array-to-db} = require './core'
+{recipient, say, robot, repeat, simplify-listing, send-pm, commit-array-to-db} = require './core'
 settings = require '../../settings' .modules.search
 subs = settings.subreddits
 cycle-time = settings.cycle_time or 60000

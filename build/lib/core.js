@@ -1,11 +1,11 @@
 (function(){
-  var Jaraw, mongo, settings, dbName, dbCollections, db, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeat, recurseThroughRe, JSONparse, simplifyListing, commitArrayToDb, replyTo, sendPm, slice$ = [].slice;
+  var Jaraw, mongo, settings, dbName, dbCollections, db, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeat, recurseThroughRe, JSONparse, simplifyListing, commitArrayToDb, checkIfElementInDb, replyTo, sendPm, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
   mongo = require('mongojs');
   settings = require('../../settings');
   dbName = settings.db.name || 'bot';
-  dbCollections = ['mentions', 'receivedPms', 'acknowledgedPms', 'bailiffCases'];
+  dbCollections = ['mentions', 'receivedPms', 'acknowledgedPms', 'bailiffCases', 'bailiffEvidence'];
   db = mongo(dbName, dbCollections);
   userAgent = settings.info.name + "@" + (settings.info.version || '1.0.0') + " by " + (settings.info.author || '');
   username = settings.login.username;
@@ -87,10 +87,8 @@
     arr = [];
     if (array.length > 0) {
       return array.forEach(function(element, i){
-        return db[collection].find({
-          name: element.name
-        }).limit(1).count(function(err, count){
-          if (count === 0) {
+        return checkIfElementInDb(element, collection, function(exists){
+          if (!exists) {
             db[collection].insert(element);
             say("inserted " + element.name + " to database");
             arr.push(element);
@@ -103,6 +101,16 @@
     } else {
       return cb(arr);
     }
+  };
+  checkIfElementInDb = function(el, collection, cb){
+    cb == null && (cb = id);
+    return db[collection].find({
+      name: el.name
+    }).limit(1).count(function(err, count){
+      var ret;
+      ret = count !== 0;
+      return cb(ret);
+    });
   };
   replyTo = function(dest, text){
     var params;
@@ -121,16 +129,16 @@
       return say("Reply sent:\nDest: " + dest + "\nText: " + text);
     });
   };
-  sendPm = function(title, body, recipient){
+  sendPm = function(title, body, receiver){
     var params;
-    if (/\/u\//.test(recipient)) {
-      recipient = unchars(slice$.call(recipient, 3));
+    if (/\/u\//.test(receiver)) {
+      receiver = unchars(slice$.call(receiver, 3));
     }
     params = {
       api_type: 'json',
       subject: title,
       text: body,
-      to: recipient
+      to: receiver
     };
     return robot.post("/api/compose", params, function(err, res, bod){
       if (err || !res) {
@@ -139,7 +147,7 @@
       if (res.statusCode !== 200) {
         return say("Something went wrong: " + res.statusCode + ", send-pm");
       }
-      return say("PM sent:\nRecipient: " + recipient + "\nTitle: " + title + "\nBody: " + body);
+      return say("PM sent:\nRecipient: " + receiver + "\nTitle: " + title + "\nBody: " + body);
     });
   };
   module.exports = {
@@ -153,7 +161,8 @@
     repeat: repeat,
     say: say,
     robot: robot,
-    db: db
+    db: db,
+    checkIfElementInDb: checkIfElementInDb
   };
   function import$(obj, src){
     var own = {}.hasOwnProperty;
