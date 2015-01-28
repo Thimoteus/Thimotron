@@ -24,7 +24,7 @@
       "search": {
          "cycle_time": 30000,
          "subreddits": ["all"],
-         "search_string": "insert search term here",
+         "search_terms": [ "an array of search terms" ],
          "ignore_case": true
       },
       "image-scraper": {
