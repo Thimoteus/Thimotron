@@ -1,5 +1,5 @@
 (function(){
-  var ref$, recipient, say, robot, repeat, simplifyListing, sendPm, commitArrayToDb, settings, subs, cycleTime, username, flag, rxs, res$, i$, len$, term, getKeywordFrom, search, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatTitleSearch, slice$ = [].slice;
+  var ref$, recipient, say, robot, repeat, simplifyListing, sendPm, commitArrayToDb, settings, subs, cycleTime, username, flag, rxs, res$, i$, len$, term, search, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatTitleSearch, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   ref$ = require('./core'), recipient = ref$.recipient, say = ref$.say, robot = ref$.robot, repeat = ref$.repeat, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, commitArrayToDb = ref$.commitArrayToDb;
   settings = require('../../settings').modules.search;
@@ -13,20 +13,6 @@
     res$.push(new RegExp(term, flag));
   }
   rxs = res$;
-  getKeywordFrom = function(post){
-    var i$, ref$, len$, prop, j$, ref1$, len1$, rx;
-    for (i$ = 0, len$ = (ref$ = ['selftext', 'body', 'title']).length; i$ < len$; ++i$) {
-      prop = ref$[i$];
-      if (prop in post) {
-        for (j$ = 0, len1$ = (ref1$ = rxs).length; j$ < len1$; ++j$) {
-          rx = ref1$[j$];
-          if (rx.test(post.prop)) {
-            return rx.source;
-          }
-        }
-      }
-    }
-  };
   search = curry$(function(opts, cb){
     var urlParam, textProperty, after, limit, parseText, recurse, params;
     cb == null && (cb = id);
@@ -106,22 +92,37 @@
     textProperty: 'title'
   });
   pmUpdates = function(array){
-    var msg, keyword;
+    var getKeywordFrom, msg, i$, len$, post, keyword, url;
+    getKeywordFrom = function(post){
+      var i$, ref$, len$, prop, j$, ref1$, len1$, rx;
+      for (i$ = 0, len$ = (ref$ = ['selftext', 'body', 'title']).length; i$ < len$; ++i$) {
+        prop = ref$[i$];
+        if (prop in post) {
+          for (j$ = 0, len1$ = (ref1$ = rxs).length; j$ < len1$; ++j$) {
+            rx = ref1$[j$];
+            if (rx.test(post[prop])) {
+              return rx.source;
+            }
+          }
+        }
+      }
+    };
     if (array.length === 0) {
       return;
     }
-    msg = "`The following are mentions you may be interested in:`";
-    array.forEach(function(post){
-      var url;
+    msg = '';
+    for (i$ = 0, len$ = array.length; i$ < len$; ++i$) {
+      post = array[i$];
+      keyword = getKeywordFrom(post) || 'one of your keywords';
       switch (false) {
       case !/t3/.test(post.name):
-        return msg = msg + ("\n\n> `" + post.author + "` [posted](" + post.url + ") `in` /r/" + post.subreddit);
+        msg = msg + ("\n\n> `" + post.author + "` mentioned [" + keyword + "](" + post.url + ") `in` /r/" + post.subreddit);
+        break;
       case !/t1/.test(post.name):
         url = "/r/" + post.subreddit + "/comments/" + join('', slice$.call(post.link_id, 3)) + "/" + username + "/" + post.id;
-        return msg = msg + ("\n\n> /u/" + post.author + " [posted](" + url + ") in /r/" + post.subreddit);
+        msg = msg + ("\n\n> /u/" + post.author + " mentioned [" + keyword + "](" + url + ") in /r/" + post.subreddit);
       }
-    });
-    keyword = getKeywordFrom(post) || 'one of your keywords';
+    }
     msg += "\n\n`This has been a service by " + username + "`";
     return sendPm("Someone mentioned " + keyword, msg, recipient);
   };
