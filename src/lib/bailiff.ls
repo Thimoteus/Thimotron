@@ -11,13 +11,14 @@ cheeky-sayings =
    * "YOUR FLAWED ATTEMPTS AT EVADING JUSTICE HAVE FAILED."
    * "WHY AM I TYPING IN ALL CAPS?"
    * "DISPENSATION OF JUSTICE COMMENCES NOW."
-   * "IS THIS THE REAL LIFE?"
    * "WHERE IS YOUR GOD NOW?"
    * "ARE YOU NOT ENTERTAINED?"
    * "YOU HAD ME AT HELLO!"
    * "YOU CAN'T HANDLE THE TRUTH."
    * "AM I HUMAN? AM I DANCER?"
    * "TEACH ME HOW TO LOVE."
+   * "IS THIS THE REAL LIFE?"
+   * "IS THIS JUST FANTASY?"
 
 get-random-cheeky-saying = ->
    ind = floor Math.random() * cheeky-sayings.length

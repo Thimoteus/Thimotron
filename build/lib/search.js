@@ -93,23 +93,31 @@
   });
   pmUpdates = function(array){
     var getKeywordFrom, msg, i$, len$, post, keyword, url;
+    if (array.length === 0) {
+      return;
+    }
     getKeywordFrom = function(post){
-      var i$, ref$, len$, prop, j$, ref1$, len1$, rx;
+      var rebuilt, i$, ref$, len$, prop, j$, ref1$, len1$, rx;
+      rebuilt = function(rxs){
+        var i$, len$, rx, results$ = [];
+        for (i$ = 0, len$ = rxs.length; i$ < len$; ++i$) {
+          rx = rxs[i$];
+          results$.push(new RegExp(rx.source, 'i'));
+        }
+        return results$;
+      };
       for (i$ = 0, len$ = (ref$ = ['selftext', 'body', 'title']).length; i$ < len$; ++i$) {
         prop = ref$[i$];
         if (prop in post) {
-          for (j$ = 0, len1$ = (ref1$ = rxs).length; j$ < len1$; ++j$) {
+          for (j$ = 0, len1$ = (ref1$ = rebuilt(rxs)).length; j$ < len1$; ++j$) {
             rx = ref1$[j$];
             if (rx.test(post[prop])) {
-              return rx.source;
+              return rx.exec(post[prop])[0];
             }
           }
         }
       }
     };
-    if (array.length === 0) {
-      return;
-    }
     msg = '';
     for (i$ = 0, len$ = array.length; i$ < len$; ++i$) {
       post = array[i$];

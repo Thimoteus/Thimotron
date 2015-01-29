@@ -6,9 +6,7 @@ cycle-time = settings.cycle_time or 60000
 username = robot.options.login.username
 
 flag = if settings.ignore_case then 'ig' else 'g'
-rxs = for term in settings.search_terms
-   new RegExp term, flag
-
+rxs = [ new RegExp term, flag for term in settings.search_terms ]
 
 search = (opts, cb = id) !-->
    url-param = opts.url-param
@@ -47,12 +45,14 @@ search-comments = search {url-param: 'comments', text-property: 'body'}
 search-titles = search {url-param: 'new', text-property: 'title'}
 
 pm-updates = (array) ->
-   get-keyword-from = (post) ->
-      for prop in <[ selftext body title ]> when prop of post
-         for rx in rxs
-            if rx.test post[prop] => return rx.source
-
    if array.length is 0 => return
+
+   get-keyword-from = (post) ->
+      rebuilt = (rxs) -> [ new RegExp rx.source, 'i' for rx in rxs ]
+      for prop in <[ selftext body title ]> when prop of post
+         for rx in rebuilt rxs
+            if rx.test post[prop] => return rx.exec post[prop] .0
+
    msg = ''
    for post in array
       keyword = get-keyword-from post or 'one of your keywords'
