@@ -1,11 +1,19 @@
 global <<< require 'prelude-ls'
 require! 'request'
 {check-if-element-in-db, db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
+Inbox = require './mail'
 settings = require '../../settings' .modules.bailiff
 subreddit = settings.subreddit
 username = robot.options.login.username
+inbox = new Inbox
 
 same-length = (==) `over` (.length)
+
+substr = (sub, str) -> new RegExp sub .test str
+
+wholestr = (sub, str) -> new RegExp "^#{sub}$" .test str
+
+spoiler = (link, spoiler) -> "[#link](\#s '#spoiler')"
 
 cheeky-sayings =
    * "YOUR FLAWED ATTEMPTS AT EVADING JUSTICE HAVE FAILED."
@@ -20,9 +28,26 @@ cheeky-sayings =
    * "IS THIS THE REAL LIFE?"
    * "IS THIS JUST FANTASY?"
 
-get-random-cheeky-saying = ->
-   ind = floor Math.random() * cheeky-sayings.length
-   return cheeky-sayings[ind]
+roles =
+   * "the guy who plays AC/DC in the back of the room, not paying attention to the trial."
+   * "Zoidberg (\/)(°,,,°)(\/)"
+   * "the guy who gasps at the inhumanity ⊙▃⊙"
+   * "the guy who stands in the back, wearing sunglasses and saying nothing (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄"
+   * "a teddy bear! ʕ´•ᴥ•`ʔ"
+   * "Homer J. Simpson ~(8 ^(| )"
+   * "sitting in the corner, not doing anything, not doing anything at all ... "
+   * "Groot. **I AM GROOT.**"
+   * "the guy who sells combination Indian/Pakistani/Mexican food. But only dishes that combine all three."
+   * "the world's smallest violinist, playing the world's largest violin ♫"
+   * "someone who tells you how good cake is, while his mouth is full of cake. MM, MM."
+   * "Maximus Decimus Meridius, father to a murdered son, husband to a murdered wife. And I will have my vengeance, in this life or the next."
+   * "the guy who [spoils](\#s 'Snape kills Dumbledore') Harry Potter."
+   * "the guy who [spoils](\#s 'Jesus dies') Passion of the Christ."
+   * "the guy who [spoils](\#s 'Darth Vader is Luke's father') Star Wars."
+
+get-random-element-from = (list) -->
+   ind = floor Math.random() * list.length
+   return list[ind]
 
 get-defendants-from-title = (title) ->
    defendants = /.+VS\.?(.+)FOR.+/gi.exec title
@@ -34,27 +59,40 @@ get-charges-from-body = (body) ->
    charges = recurse-through-re /^\*\*CHARGE:?\*\*\s*(.+)$/gm, body
    return charges
 
-get-defendants-from-pm = (pm) ->
+get-defendants-from-confirmation = (pm) ->
    defendants = recurse-through-re /^\* (\/u\/\w+)$/img, pm
    return defendants
 
-get-charges-from-pm = (pm) ->
+get-charges-from-confirmation = (pm) ->
    charges = recurse-through-re //^\*\s([^/u/].+)$//m, pm
    return charges
 
-get-case-link-from-pm = (pm) ->
-   link = /Concerning \[this post\]\((.+)\):/.exec pm
-   return link.1
-
-bulletify = (arr) ->
-   the-head = '* ' + arr.0
-   the-tail = join '\n* ', [''] ++ tail arr
+transform-strings = (initial, joiner, arr) -->
+   the-head = initial + head arr
+   the-tail = join joiner, [''] ++ tail arr
    return the-head + the-tail
 
-summons-text = (charges, case-link) ->
+bulletify = transform-strings '* ' '\n* '
+
+smallify = transform-strings '^^^^^^^^' ' ^^^^^^^^'
+
+numberify = (strings) ->
+   return for str, i in strings
+      "[#i](#str)"
+
+########## SUMMONER ##########
+
+summons-text = (charges, id) ->
+   # make a nice link from the id
+   case-link = "http://redd.it/#id"
+   # charges is an array
    charges = bulletify charges
+   # Article IV of the constitution
    satirical = 'https://www.reddit.com/r/KarmaCourt/wiki/constitution#wiki_article_iv._karmacourt_is_funny_satire'
+   # Bill of rights
    rights = 'https://www.reddit.com/r/KarmaCourt/wiki/constitution#wiki_article_vi._the_bill_of_rights'
+
+   # the summons text
    msg = """
    You are hereby summoned to /r/KarmaCourt on the following charges:
 
@@ -64,7 +102,8 @@ summons-text = (charges, case-link) ->
 
    ---
 
-   If no one represents you the case will not go forward. You may represent yourself.
+   If no one represents you the case will not go forward.
+   You may represent yourself.
 
    KarmaCourt is [satirical](#satirical)
    and not to be taken seriously.
@@ -73,23 +112,22 @@ summons-text = (charges, case-link) ->
    """
    return msg
 
-send-summons = (case-link, charges, defendants) ->
-   msg = summons-text charges, case-link
-   for let scumbag in defendants
-      send-pm "KARMACOURT SUMMONS", msg, scumbag
+send-summons = (case-id, charges, defendants) ->
+   msg = summons-text charges, case-id
+   for let scumbag in defendants => send-pm "KARMACOURT SUMMONS", msg, scumbag
 
-declare-bailiffness-to-court = (case-link, charges, defendants) ->
+declare-bailiffness-to-court = (case-id, reply-name, charges, defendants) ->
+   # defendants is an array
    defendants = defendants |> map (.toLowerCase!) |> join ', '
-   summons = summons-text charges, case-link
-   case-name = /http:\/\/redd\.it\/(\w{6})/.exec case-link .1
-   msg = """
-   `I AM #username. I WILL BE THE BAILIFFBOT FOR THIS CASE.`
+   # the actual summons text, charges is also an array
+   summons = summons-text charges, case-id
 
-   `THE FOLLOWING SCUMBAG(S) HAVE BEEN AUTOMATICALLY SUMMONED:`
+   msg = """
+   The following scumbag(s) have been automatically summoned:
 
    #defendants
 
-   `THE SUMMONS TEXT IS AS FOLLOWS:`
+   The summons text is as follows:
 
    ---
    ---
@@ -99,87 +137,154 @@ declare-bailiffness-to-court = (case-link, charges, defendants) ->
    ---
    ---
 
-   `THE BAILIFFBOT WILL NOW UNDERGO COMPUTRONIC SLEEP PROCEDURES. GOODBYE!`
    """
-   reply-to "t3_#{case-name}", msg
+   reply-to reply-name, msg
 
 check-mail = ->
-   (err, res, bod) <- robot.get "/message/messages.json", limit: 5
-   if err or not res => return say "Something went wrong, bailiff-get-messages"
-   if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, bailiff-get-messages"
 
-   sent-by-me = -> it.subject is 'Are these right?'
-   has-replies = -> it.replies isnt ''
-   positives = -> /^y(es)?$/i.test it.body
+   # mentions should only be used for summons
+   inbox.get-mentions (err, res, bod) ->
+      if err or not res => return say 'Error: inbox.get-mentions'
+      if res.status-code isnt 200 => return say "Error: #{res.status-code}, inbox.get-mentions"
 
-   pms = bod |> simplify-listing |> filter sent-by-me |> filter has-replies
-   for let pm in pms
-      correct = pm.replies |> (.data.children) |> map (.data) |> filter positives
-      # takes replies with a positive response that haven't been responded to yet
-      if correct.length == 1
-         (err, count) <- db['acknowledgedPms'].find name: correct.0.name .limit 1 .count
-         if count == 0
-            reply-to correct.0.name, "Acknowledged."
-            commit-array-to-db correct, 'acknowledgedPms'
+      # if we're summoned, let's check the facts of the case
+      for let pm in bod => check-case pm
 
-            case-link = get-case-link-from-pm pm.body
-            charges = get-charges-from-pm pm.body
-            defendants = get-defendants-from-pm pm.body
+   # comment replies are only for checking if the bot got the defendants/charges right
+   inbox.get-comment-replies (err, res, bod) ->
+      if err or not res => return
+      if res.status-code isnt 200 => return say "Error: #{res.status-code}, inbox.get-replies"
 
-            send-summons case-link, charges, defendants
-            declare-bailiffness-to-court case-link, charges, defendants
+      # someone responded to one of our comments, let's see if it confirmed the info we got
+      for let reply in bod => confirm-case reply
 
-check-cases = (cases) ->
+confirm-case = (reply) ->
+   if reply.author isnt recipient => return
 
-   for let post in cases
-      (err, count) <- db['bailiffCases'].find name: post.name .limit 1 .count
+   valid-confirmations =
+      * "yes"
+      * "y"
+      * "You're goddamn right."
 
-      defendants = get-defendants-from-title post.title
-      charges = get-charges-from-body post.selftext
+   is-valid = fold1 (or), [wholestr conf, reply.body for conf in valid-confirmations]
 
-      if defendants.length > 0 and charges.length > 0 and count == 0
-         title = 'Are these right?'
-         defendants = map (.toLowerCase!), defendants
-         charges = bulletify charges
-         defendants = bulletify defendants
-         msg = """
-         Concerning [this post](http://redd.it/#{post.id}):
+   if not is-valid => return
 
-         **DEFENDANTS**:
+   (exists) <- check-if-element-in-db reply, 'acknowledgedPms'
+   if exists => return
 
-         #defendants
+   commit-array-to-db [reply], 'acknowledgedPms'
 
-         **CHARGES**:
+   # now we get the requisite information from our original post
+   case-id = /\/comments\/(\w{6})\//.exec reply.context .1
+   (err, res, bod) <- robot.get "/r/#subreddit/comments/#case-id.json", {comment: unchars reply.parent_id[3 to]}
+   if err or not res => return say "Error: confirm-case"
+   if res.status-code isnt 200 => return say "Error: #{res.status-code}, confirm-case"
 
-         #charges
-         """
-         send-pm title, msg, recipient
-         commit-array-to-db [post], 'bailiffCases'
+   # we take the original post asking for confirmation
+   text = bod |> JSON.parse |> (.1) |> simplify-listing |> (.0.body)
+
+   # and extract the defendants and charges
+   charges = get-charges-from-confirmation text
+   defendants = get-defendants-from-confirmation text
+
+   # summon the defendants
+   send-summons case-id, charges, defendants
+
+   # inform the court of the summons
+   declare-bailiffness-to-court case-id, reply.name, charges, defendants
+
+check-case = (pm) ->
+   # we've read this
+   if pm.new => inbox.read pm
+   # can't be summoned by random people, now can we?
+   if pm.author isnt recipient => return
+
+   (exists) <- check-if-element-in-db pm, 'receivedPms'
+   if exists => return
+
+   # maybe one day we can replace this with clever unread inbox calls
+   commit-array-to-db [pm], 'receivedPms'
+
+   # here, summons refers to summoning the bot, not the defendants
+   valid-summons =
+      * "bailiffy this case"
+      * "summon these scumbags"
+      * "summon this scumbag"
+      * "summon the defendant"
+      * "summon the defendants"
+      * "serve this scumbag"
+      * "serve these scumbags"
+
+   # return if the summons text didn't match the acceptable summoning phrases
+   is-valid = fold1 (or), [substr summs, pm.body for summs in valid-summons]
+   if not is-valid => return
+
+   # unfortunately this is the only way to get a post id out of the inbox
+   id = 't3_' + /comments\/(\w{6})\//.exec pm.context .1
+
+   # now we make a request to get the case
+   (err, res, bod) <- robot.get "/by_id/#id"
+   if err or not res => return say "Error: check-case"
+   if res.status-code isnt 200 => return say "Error: #{res.status-code}, check-case"
+
+   post = simplify-listing bod .0
+
+   # check if the case is already in our db
+   (exists) <- check-if-element-in-db post, 'bailiffCases'
+   if exists => return
+
+   defendants = get-defendants-from-title post.title
+   charges = get-charges-from-body post.selftext
+
+   if defendants.length > 0 and charges.length > 0
+      defendants = map (.toLowerCase!), defendants
+      charges = bulletify charges
+      defendants = bulletify defendants
+      msg = """
+      Are these the defendants and charges?
+
+      **DEFENDANTS**:
+
+      #defendants
+
+      **CHARGES**:
+
+      #charges
+      """
+
+      # don't let pm.name fool you, we're actually responding to the comment where we're called
+      reply-to pm.name, msg
+      commit-array-to-db [post], 'bailiffCases'
+
+########## ARCHIVIST ##########
 
 submit-evidence-to-archive = (post, cb = id) ->
 
+   # get the link of the archived evidence
    get-redirect-link-from = (bod) -> /document\.location\.replace\("(.+)"\)},1000\)/.exec bod .1
 
    selftext = post.selftext
 
    (exists) <- check-if-element-in-db post, 'bailiffEvidence'
+   if exists => return
 
-   if not exists
+   evidence = get-evidence-from selftext
+   archived-evidence = []
 
-      evidence = get-evidence-from selftext
-      archived-evidence = []
+   for let url in evidence
+      say "making request to archive.today"
+      params =
+         url: 'https://archive.today/submit/'
+         form:
+            url: url
+      request.post params, (err, res, bod) ->
+         if err or not res => return say "Something went wrong, submit-evidence-to-archive"
+         if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, submit-evidence-to-archive"
 
-      for let url in evidence
-         say "making request to archive.today"
-         params =
-            url: 'https://archive.today/submit/'
-            form:
-               url: url
-         request.post params, (err, res, bod) ->
-            if err or not res => return say "Something went wrong, submit-evidence-to-archive"
-
-            archived-evidence.push get-redirect-link-from bod
-            if archived-evidence `same-length` evidence => cb archived-evidence
+         archived-evidence.push get-redirect-link-from bod
+         # we don't finish until the last evidence has been archived
+         if archived-evidence `same-length` evidence => cb archived-evidence
 
 get-evidence-from = (selftext) ->
    rx = /^\[EXHIBIT [A-Z]{1}\]\((.+)\)/gm
@@ -187,14 +292,18 @@ get-evidence-from = (selftext) ->
    return evidence
 
 report-evidence-to-court = (archive, post) ->
-   postable-evidence = bulletify archive
+   my = spoiler "I'll be" "IAMA BOT, AMA"
+   role = get-random-element-from roles
+   declare = smallify <[ The following is an archive of the evidence: ]>
+   rendered-evidence = archive |> numberify |> smallify
+   signature = smallify [ \This \bot \by "/u/#recipient." \Code \viewable \at "github.com/#recipient/#username" ]
+
    msg = """
-   `I AM #username. #{get-random-cheeky-saying()}`
+   #my #role
 
-   `THE EVIDENCE HAS BEEN ARCHIVED:`
-
-   #postable-evidence
+   #declare #rendered-evidence #signature
    """
+
    reply-to post.name, msg
    commit-array-to-db [post], 'bailiffEvidence'
 
@@ -205,9 +314,10 @@ process-cases = ->
 
    cases = simplify-listing bod
 
-   check-cases cases
    for let post in cases
       submit-evidence-to-archive post, (archived-evidence) -> report-evidence-to-court archived-evidence, post
+
+########## MAIN LOOP ##########
 
 bailiff = ->
    check-mail()

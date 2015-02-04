@@ -2,7 +2,7 @@ global <<< require 'prelude-ls'
 {recipient, say, robot, repeat, simplify-listing, send-pm, commit-array-to-db} = require './core'
 settings = require '../../settings' .modules.search
 subs = settings.subreddits
-cycle-time = settings.cycle_time or 60000
+cycle-time = settings.cycle_time or 60_000ms
 username = robot.options.login.username
 
 flag = if settings.ignore_case then 'ig' else 'g'
@@ -45,7 +45,7 @@ search-comments = search {url-param: 'comments', text-property: 'body'}
 search-titles = search {url-param: 'new', text-property: 'title'}
 
 pm-updates = (array) ->
-   if array.length is 0 => return
+   if array.length == 0 => return
 
    get-keyword-from = (post) ->
       rebuilt = (rxs) -> [ new RegExp rx.source, 'i' for rx in rxs ]
@@ -57,9 +57,9 @@ pm-updates = (array) ->
    for post in array
       keyword = get-keyword-from post or 'one of your keywords'
       switch
-      | /t3/.test post.name => msg := msg + "\n\n> `#{post.author}` mentioned [#keyword](#{post.url}) `in` /r/#{post.subreddit}"
+      | /t3/.test post.name => msg := msg + "\n\n> `#{post.author}` mentioned [#keyword](#{post.url}?context=3) `in` /r/#{post.subreddit}"
       | /t1/.test post.name
-         url = "/r/#{post.subreddit}/comments/#{join '' post.link_id[3 to]}/#{username}/#{post.id}"
+         url = "/r/#{post.subreddit}/comments/#{join '' post.link_id[3 to]}/#{username}/#{post.id}?context=3"
          msg := msg + "\n\n> /u/#{post.author} mentioned [#keyword](#{url}) in /r/#{post.subreddit}"
    msg += "\n\n`This has been a service by #username`"
    send-pm "Someone mentioned #keyword", msg, recipient

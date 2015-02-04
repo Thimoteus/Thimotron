@@ -122,11 +122,9 @@
         }(
         pm.replies)));
         if (correct.length === 1) {
-          return db['acknowledgedPms'].find({
-            name: correct[0].name
-          }).limit(1).count(function(err, count){
+          return checkIfElementInDb(correct[0], 'acknowledgedPms', function(exists){
             var caseLink, charges, defendants;
-            if (count === 0) {
+            if (exists) {
               replyTo(correct[0].name, "Acknowledged.");
               commitArrayToDb(correct, 'acknowledgedPms');
               caseLink = getCaseLinkFromPm(pm.body);
@@ -147,13 +145,11 @@
     }
     return results$;
     function fn$(post){
-      return db['bailiffCases'].find({
-        name: post.name
-      }).limit(1).count(function(err, count){
+      return checkIfElementInDb(post, 'bailiffCases', function(exists){
         var defendants, charges, title, msg;
         defendants = getDefendantsFromTitle(post.title);
         charges = getChargesFromBody(post.selftext);
-        if (defendants.length > 0 && charges.length > 0 && count === 0) {
+        if (defendants.length > 0 && charges.length > 0 && exists) {
           title = 'Are these right?';
           defendants = map(function(it){
             return it.toLowerCase();

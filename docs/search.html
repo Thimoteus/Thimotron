@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>search.ls</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="bailiff.html">
+                  bailiff.ls
+                </a>
+              
+                
+                <a class="source" href="core.html">
+                  core.ls
+                </a>
+              
+                
+                <a class="source" href="image-scraper.html">
+                  image-scraper.ls
+                </a>
+              
+                
+                <a class="source" href="library.html">
+                  library.ls
+                </a>
+              
+                
+                <a class="source" href="mail.html">
+                  mail.ls
+                </a>
+              
+                
+                <a class="source" href="search.html">
+                  search.ls
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>search.ls</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">global</span> &lt;&lt;&lt; <span class="hljs-built_in">require</span> <span class="hljs-string">'prelude-ls'</span>
+{recipient, say, robot, repeat, simplify-listing, send-pm, commit-array-to-db} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
+settings = <span class="hljs-built_in">require</span> <span class="hljs-string">'../../settings'</span> .modules.search
+subs = settings.subreddits
+cycle-time = settings.cycle_time <span class="hljs-keyword">or</span> <span class="hljs-number">60</span>_000ms
+username = robot.options.login.username
+
+flag = <span class="hljs-keyword">if</span> settings.ignore_case <span class="hljs-keyword">then</span> <span class="hljs-string">'ig'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">'g'</span>
+rxs = [ <span class="hljs-keyword">new</span> RegExp term, flag <span class="hljs-keyword">for</span> term <span class="hljs-keyword">in</span> settings.search_terms ]
+
+search = (opts, cb = id) !--&gt;
+   url-param = opts.url-param
+   text-property = opts.text-property
+   after = opts.after <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span>
+   limit = opts.limit <span class="hljs-keyword">or</span> <span class="hljs-number">100</span>
+
+   parse-text = <span class="hljs-function">-&gt;</span> <span class="hljs-keyword">return</span> fold1 (<span class="hljs-keyword">or</span>), [rx.test it[text-property] <span class="hljs-keyword">for</span> rx <span class="hljs-keyword">in</span> rxs]
+
+   recurse = after <span class="hljs-keyword">is</span> <span class="hljs-literal">true</span> <span class="hljs-keyword">or</span> <span class="hljs-keyword">is</span>-type <span class="hljs-string">'String'</span> after
+   params = <span class="hljs-attribute">limit</span>: limit
+   <span class="hljs-keyword">if</span> recurse =&gt; params.after = after
+
+   (sub) &lt;- subs.forEach
+   (err, res, bod) &lt;- robot.get <span class="hljs-string">"/r/<span class="hljs-subst">#{sub}</span>/<span class="hljs-subst">#{url-param}</span>.json"</span> params
+   <span class="hljs-keyword">if</span> err <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> res =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong, search"</span>
+   <span class="hljs-keyword">if</span> res.status-code <span class="hljs-keyword">isnt</span> <span class="hljs-number">200</span> =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong: <span class="hljs-subst">#{res.status-code}</span>, search"</span>
+
+   <span class="hljs-keyword">try</span>
+      parsed-text = bod |&gt; simplify-listing |&gt; filter parse-text
+   <span class="hljs-keyword">catch</span>
+      <span class="hljs-keyword">if</span> e <span class="hljs-keyword">instanceof</span> SyntaxError
+         say <span class="hljs-string">"Reddit took too long to respond"</span>
+         <span class="hljs-keyword">return</span>
+      <span class="hljs-keyword">else</span>
+         say res.status-code <span class="hljs-keyword">if</span> res?.status-code?
+         say bod <span class="hljs-keyword">if</span> bod?
+         <span class="hljs-keyword">return</span>
+
+   cb parsed-text
+   <span class="hljs-keyword">if</span> recurse
+      search {<span class="hljs-attribute">after</span>: JSON.parse(bod).data.after, url-<span class="hljs-attribute">param</span>: url-param, text-<span class="hljs-attribute">property</span>: text-property}, cb
+
+search-self-texts = search {url-<span class="hljs-attribute">param</span>: <span class="hljs-string">'new'</span>, text-<span class="hljs-attribute">property</span>: <span class="hljs-string">'selftext'</span>}
+search-comments = search {url-<span class="hljs-attribute">param</span>: <span class="hljs-string">'comments'</span>, text-<span class="hljs-attribute">property</span>: <span class="hljs-string">'body'</span>}
+search-titles = search {url-<span class="hljs-attribute">param</span>: <span class="hljs-string">'new'</span>, text-<span class="hljs-attribute">property</span>: <span class="hljs-string">'title'</span>}
+
+pm-updates = <span class="hljs-function"><span class="hljs-params">(array)</span> -&gt;</span>
+   <span class="hljs-keyword">if</span> array.length == <span class="hljs-number">0</span> =&gt; <span class="hljs-keyword">return</span>
+
+   get-keyword-from = <span class="hljs-function"><span class="hljs-params">(post)</span> -&gt;</span>
+<span class="hljs-function">      <span class="hljs-title">rebuilt</span> = <span class="hljs-params">(rxs)</span> -&gt;</span> [ <span class="hljs-keyword">new</span> RegExp rx.source, <span class="hljs-string">'i'</span> <span class="hljs-keyword">for</span> rx <span class="hljs-keyword">in</span> rxs ]
+      <span class="hljs-keyword">for</span> prop <span class="hljs-keyword">in</span> &lt;[ selftext body title ]&gt; <span class="hljs-keyword">when</span> prop <span class="hljs-keyword">of</span> post
+         <span class="hljs-keyword">for</span> rx <span class="hljs-keyword">in</span> rebuilt rxs
+            <span class="hljs-keyword">if</span> rx.test post[prop] =&gt; <span class="hljs-keyword">return</span> rx.exec post[prop] <span class="hljs-number">.0</span>
+
+   msg = <span class="hljs-string">''</span>
+   <span class="hljs-keyword">for</span> post <span class="hljs-keyword">in</span> array
+      keyword = get-keyword-from post <span class="hljs-keyword">or</span> <span class="hljs-string">'one of your keywords'</span>
+      <span class="hljs-keyword">switch</span>
+      | <span class="hljs-regexp">/t3/</span>.test post.name =&gt; msg := msg + <span class="hljs-string">"\n\n&gt; `<span class="hljs-subst">#{post.author}</span>` mentioned [#keyword](<span class="hljs-subst">#{post.url}</span>?context=3) `in` /r/<span class="hljs-subst">#{post.subreddit}</span>"</span>
+      | <span class="hljs-regexp">/t1/</span>.test post.name
+         url = <span class="hljs-string">"/r/<span class="hljs-subst">#{post.subreddit}</span>/comments/<span class="hljs-subst">#{join <span class="hljs-string">''</span> post.link_id[<span class="hljs-number">3</span> to]}</span>/<span class="hljs-subst">#{username}</span>/<span class="hljs-subst">#{post.id}</span>?context=3"</span>
+         msg := msg + <span class="hljs-string">"\n\n&gt; /u/<span class="hljs-subst">#{post.author}</span> mentioned [#keyword](<span class="hljs-subst">#{url}</span>) in /r/<span class="hljs-subst">#{post.subreddit}</span>"</span>
+   msg += <span class="hljs-string">"\n\n`This has been a service by #username`"</span>
+   send-pm <span class="hljs-string">"Someone mentioned #keyword"</span>, msg, recipient
+
+repeat-self-texts-search = <span class="hljs-function">-&gt;</span> repeat cycle-time, search-self-texts, <span class="hljs-string">'self-texts-search'</span>, <span class="hljs-function"><span class="hljs-params">(posts)</span> -&gt;</span> commit-array-to-db posts, <span class="hljs-string">'mentions'</span>, pm-updates
+repeat-comments-search = <span class="hljs-function">-&gt;</span> repeat cycle-time, search-comments, <span class="hljs-string">'comments-search'</span>, <span class="hljs-function"><span class="hljs-params">(comments)</span> -&gt;</span> commit-array-to-db comments, <span class="hljs-string">'mentions'</span>, pm-updates
+repeat-title-search = <span class="hljs-function">-&gt;</span> repeat cycle-time, search-titles, <span class="hljs-string">'titles-search'</span>, <span class="hljs-function"><span class="hljs-params">(titles)</span> -&gt;</span> commit-array-to-db titles, <span class="hljs-string">'mentions'</span>, pm-updates
+
+<span class="hljs-built_in">module</span>.exports =
+   comments-<span class="hljs-attribute">search</span>: repeat-comments-search
+   self-texts-<span class="hljs-attribute">search</span>: repeat-self-texts-search
+   titles-<span class="hljs-attribute">search</span>: repeat-title-search</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

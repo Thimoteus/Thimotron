@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>image-scraper.ls</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="bailiff.html">
+                  bailiff.ls
+                </a>
+              
+                
+                <a class="source" href="core.html">
+                  core.ls
+                </a>
+              
+                
+                <a class="source" href="image-scraper.html">
+                  image-scraper.ls
+                </a>
+              
+                
+                <a class="source" href="library.html">
+                  library.ls
+                </a>
+              
+                
+                <a class="source" href="mail.html">
+                  mail.ls
+                </a>
+              
+                
+                <a class="source" href="search.html">
+                  search.ls
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>image-scraper.ls</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">global</span> &lt;&lt;&lt; <span class="hljs-built_in">require</span> <span class="hljs-string">'prelude-ls'</span>
+<span class="hljs-built_in">require</span>! <span class="hljs-string">'fs'</span>
+<span class="hljs-built_in">require</span>! <span class="hljs-string">'path'</span>
+<span class="hljs-built_in">require</span>! <span class="hljs-string">'request'</span>
+{say, simplify-listing, robot} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
+settings = <span class="hljs-built_in">require</span> <span class="hljs-string">'../../settings'</span> .modules&lt;[ image-scraper ]&gt;
+subs = settings.subreddits
+dl-dir = settings.download_directory <span class="hljs-keyword">or</span> <span class="hljs-string">'./'</span>
+fs.exists dl-dir, <span class="hljs-function"><span class="hljs-params">(exists)</span> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> exists =&gt; <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"bad download directory"</span>
+image-limit = settings.image_limit <span class="hljs-keyword">or</span> <span class="hljs-number">50</span>
+
+domain = settings.domain <span class="hljs-keyword">or</span> <span class="hljs-string">'imgur.com'</span>
+re = <span class="hljs-keyword">new</span> RegExp domain
+
+get-image-links = <span class="hljs-function"><span class="hljs-params">(opts, cb = id)</span> -&gt;</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span>! opts <span class="hljs-keyword">is</span> <span class="hljs-string">'Function'</span> =&gt; [opts, cb] = [{}, opts]
+   after = opts.after <span class="hljs-keyword">or</span> <span class="hljs-literal">null</span>
+   params =
+      <span class="hljs-attribute">after</span>: after
+      <span class="hljs-attribute">limit</span>: image-limit
+
+   good-domain = <span class="hljs-function">-&gt;</span> re.test it.domain
+   an-album = <span class="hljs-function">-&gt;</span> <span class="hljs-regexp">/\/a\//</span>.test it.url
+<span class="hljs-function">   <span class="hljs-title">securify</span> = <span class="hljs-params">(url)</span> -&gt;</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-regexp">/http:/</span>.test url
+         <span class="hljs-keyword">return</span> url.replace <span class="hljs-regexp">/http:/</span>, <span class="hljs-string">'https:'</span>
+      <span class="hljs-keyword">return</span> url
+
+   <span class="hljs-keyword">for</span> <span class="hljs-reserved">let</span> sub <span class="hljs-keyword">in</span> subs
+
+      (err, res, bod) &lt;- robot.get <span class="hljs-string">"/r/<span class="hljs-subst">#{sub}</span>/new.json"</span>, params
+      <span class="hljs-keyword">if</span> err <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> res =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong, get-image-links"</span>
+      <span class="hljs-keyword">if</span> res.status-code <span class="hljs-keyword">isnt</span> <span class="hljs-number">200</span> =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong: <span class="hljs-subst">#{res.status-code}</span>, get-image-links"</span>
+
+      after = JSON.parse bod .data.after
+      urls = bod |&gt; simplify-listing |&gt; filter good-domain |&gt; filter (<span class="hljs-keyword">not</span>) &lt;&lt; an-album |&gt; map (.url) |&gt; map securify
+
+      cb urls, after
+
+download-image-links = <span class="hljs-function"><span class="hljs-params">(urls, cb = id)</span> -&gt;</span>
+<span class="hljs-function">   <span class="hljs-title">filename</span> = <span class="hljs-params">(url)</span> -&gt;</span> <span class="hljs-regexp">/com\/(.+)$/</span>.exec url <span class="hljs-number">.1</span>
+   say <span class="hljs-string">"there are <span class="hljs-subst">#{urls.length}</span> images to download"</span>
+
+   <span class="hljs-keyword">for</span> <span class="hljs-reserved">let</span> url, i <span class="hljs-keyword">in</span> urls
+      say <span class="hljs-string">"downloading file <span class="hljs-subst">#{i+<span class="hljs-number">1</span>}</span>"</span>
+      destination = path.join dl-dir, filename url
+      request url .pipe fs.createWriteStream destination
+
+   cb urls
+
+image-scraper = <span class="hljs-function">-&gt;</span>
+   say <span class="hljs-string">"scraping <span class="hljs-subst">#{join <span class="hljs-string">', '</span> subs}</span> for up to #image-limit images from #domain into #dl-dir"</span>
+   get-image-links (urls) -&gt; download-image-links urls
+
+<span class="hljs-built_in">module</span>.exports =
+   image-<span class="hljs-attribute">scraper</span>: image-scraper</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

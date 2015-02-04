@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>library.ls</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="bailiff.html">
+                  bailiff.ls
+                </a>
+              
+                
+                <a class="source" href="core.html">
+                  core.ls
+                </a>
+              
+                
+                <a class="source" href="image-scraper.html">
+                  image-scraper.ls
+                </a>
+              
+                
+                <a class="source" href="library.html">
+                  library.ls
+                </a>
+              
+                
+                <a class="source" href="mail.html">
+                  mail.ls
+                </a>
+              
+                
+                <a class="source" href="search.html">
+                  search.ls
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>library.ls</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>/* MODULES */
+
+{login, repeat} = require './core'
+{bailiff-cycle-time, bailiff} = require './bailiff'
+{image-scraper} = require './image-scraper'
+{comments-search, self-texts-search, titles-search} = require './search'
+
+module.exports =
+   comments-search: comments-search
+   self-texts-search: self-texts-search
+   titles-search: titles-search
+   login: login
+   bailiff: -&gt; repeat bailiff-cycle-time, bailiff, 'bailiff'
+   image-scraper: image-scraper</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
