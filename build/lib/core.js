@@ -82,24 +82,27 @@
     return it.data;
   }));
   commitArrayToDb = function(array, collection, cb){
-    var arr;
+    var arr, i$, len$;
     cb == null && (cb = id);
     arr = [];
     if (array.length > 0) {
-      return array.forEach(function(element, i){
-        return checkIfElementInDb(element, collection, function(exists){
-          if (!exists) {
-            db[collection].insert(element);
-            say("inserted " + element.name + " to database " + collection);
-            arr.push(element);
-          }
-          if (i === array.length - 1) {
-            return cb(arr);
-          }
-        });
+      for (i$ = 0, len$ = array.length; i$ < len$; ++i$) {
+        (fn$.call(this, i$, array[i$]));
+      }
+    }
+    return cb(arr);
+    function fn$(i, element){
+      checkIfElementInDb(element, collection, function(exists){
+        if (exists) {
+          return;
+        }
+        db[collection].insert(element);
+        say("inserted " + element.name + " to database " + collection);
+        arr.push(element);
+        if (i === array.length - 1) {
+          return cb(arr);
+        }
       });
-    } else {
-      return cb(arr);
     }
   };
   checkIfElementInDb = function(el, collection, cb){
@@ -121,10 +124,10 @@
     };
     return robot.post("/api/comment", params, function(err, res, bod){
       if (err || !res) {
-        return say("Something went wrong, reply-to");
+        return say("Error: reply-to");
       }
       if (res.statusCode !== 200) {
-        return say("Something went wrong: " + res.statusCode + ", reply-to");
+        return say("Error: " + res.statusCode + ", reply-to");
       }
       return say("Reply sent:\nDest: " + dest + "\nText: " + text);
     });
@@ -142,10 +145,10 @@
     };
     return robot.post("/api/compose", params, function(err, res, bod){
       if (err || !res) {
-        return say("Something went wrong, send-pm");
+        return say("Error: send-pm");
       }
       if (res.statusCode !== 200) {
-        return say("Something went wrong: " + res.statusCode + ", send-pm");
+        return say("Error: " + res.statusCode + ", send-pm");
       }
       return say("PM sent:\nRecipient: " + receiver + "\nTitle: " + title + "\nBody: " + body);
     });
@@ -161,7 +164,6 @@
     repeat: repeat,
     say: say,
     robot: robot,
-    db: db,
     checkIfElementInDb: checkIfElementInDb
   };
   function import$(obj, src){

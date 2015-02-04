@@ -1,8 +1,8 @@
 (function(){
-  var request, ref$, checkIfElementInDb, db, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, Inbox, settings, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, cheekySayings, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, transformStrings, bulletify, smallify, numberify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
+  var request, ref$, checkIfElementInDb, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, Inbox, settings, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, cheekySayings, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, transformStrings, bulletify, smallify, numberify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   request = require('request');
-  ref$ = require('./core'), checkIfElementInDb = ref$.checkIfElementInDb, db = ref$.db, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
+  ref$ = require('./core'), checkIfElementInDb = ref$.checkIfElementInDb, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
   Inbox = require('./mail');
   settings = require('../../settings').modules.bailiff;
   subreddit = settings.subreddit;
@@ -60,7 +60,7 @@
     return theHead + theTail;
   });
   bulletify = transformStrings('* ', '\n* ');
-  smallify = transformStrings('^^^^^^^^', ' ^^^^^^^^');
+  smallify = transformStrings('^^^^^^^', ' ^^^^^^^');
   numberify = function(strings){
     var i, str;
     return (function(){

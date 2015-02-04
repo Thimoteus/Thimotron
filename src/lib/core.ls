@@ -29,7 +29,7 @@ robot = new Jaraw do
    rate_limit: 1_000ms
 
 # console.log for debugging
-say = -> console.log it if talkative
+say = -> if talkative => console.log it
 
 # basic login function
 login = (cb) ->
@@ -70,18 +70,18 @@ JSONparse = ->
 simplify-listing = JSONparse >> (.data.children) >> map (.data)
 
 # takes an array and inserts each element into `db-collection`, unless that element is already in (based on a .name attribute)
+# useful for putting listings (by using simplify-listing) into a db
 commit-array-to-db = (array, collection, cb = id) ->
    arr = []
-   if array.length > 0
-      (element, i) <- array.forEach
+   if array.length > 0 => for let element, i in array
       (exists) <- check-if-element-in-db element, collection
-      if not exists
-         db[collection].insert element
-         say "inserted #{element.name} to database #collection"
-         arr.push element
+      if exists => return
+
+      db[collection].insert element
+      say "inserted #{element.name} to database #collection"
+      arr.push element
       if i == array.length - 1 => return cb arr
-   else
-      return cb arr
+   return cb arr
 
 # returns true if `el` is in `collection` of the database, otherwise false
 check-if-element-in-db = (el, collection, cb = id) ->
@@ -96,8 +96,8 @@ reply-to = (dest, text) ->
       text: text
       api_type: 'json'
    robot.post "/api/comment", params, (err, res, bod) ->
-      if err or not res => return say "Something went wrong, reply-to"
-      if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, reply-to"
+      if err or not res => return say "Error: reply-to"
+      if res.status-code isnt 200 => return say "Error: #{res.status-code}, reply-to"
       return say "Reply sent:\nDest: #dest\nText: #text"
 
 # sends a pm with subject `title` to `receiver` with message `body`
@@ -109,8 +109,8 @@ send-pm = (title, body, receiver) ->
       text: body
       to: receiver
    robot.post "/api/compose", params, (err, res, bod) ->
-      if err or not res => return say "Something went wrong, send-pm"
-      if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, send-pm"
+      if err or not res => return say "Error: send-pm"
+      if res.status-code isnt 200 => return say "Error: #{res.status-code}, send-pm"
       return say "PM sent:\nRecipient: #receiver\nTitle: #title\nBody: #body"
 
 # where the magic happens
@@ -125,5 +125,4 @@ module.exports =
    repeat: repeat
    say: say
    robot: robot
-   db: db
    check-if-element-in-db: check-if-element-in-db

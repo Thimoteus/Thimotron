@@ -1,6 +1,6 @@
 global <<< require 'prelude-ls'
 require! 'request'
-{check-if-element-in-db, db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
+{check-if-element-in-db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
 Inbox = require './mail'
 settings = require '../../settings' .modules.bailiff
 subreddit = settings.subreddit
@@ -74,7 +74,7 @@ transform-strings = (initial, joiner, arr) -->
 
 bulletify = transform-strings '* ' '\n* '
 
-smallify = transform-strings '^^^^^^^^' ' ^^^^^^^^'
+smallify = transform-strings '^^^^^^^' ' ^^^^^^^'
 
 numberify = (strings) ->
    return for str, i in strings
@@ -159,6 +159,7 @@ check-mail = ->
       for let reply in bod => confirm-case reply
 
 confirm-case = (reply) ->
+   # mustn't be summoned by random people
    if reply.author isnt recipient => return
 
    valid-confirmations =
@@ -167,7 +168,6 @@ confirm-case = (reply) ->
       * "You're goddamn right."
 
    is-valid = fold1 (or), [wholestr conf, reply.body for conf in valid-confirmations]
-
    if not is-valid => return
 
    (exists) <- check-if-element-in-db reply, 'acknowledgedPms'
