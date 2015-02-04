@@ -20,7 +20,7 @@ That's it!
 
 ![Status](https://img.shields.io/badge/status-ready-green.svg)
 
-This scans /r/KarmaCourt for new cases and sends a PM to you when it finds a well-formatted case. If you respond with "yes", it will send a PM to the defendant with a list of charges and a link to the KarmaCourt case.
+Scans KC cases and archives evidence. Can also be used to summon defendants if you call it by username and an approved calling message. See the source code or doc page for more info.
 
 Usage: `bailiff` in settings.modules.run.
 

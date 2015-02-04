@@ -1,21 +1,33 @@
 (function(){
-  var request, ref$, checkIfElementInDb, db, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, settings, subreddit, username, sameLength, cheekySayings, getRandomCheekySaying, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromPm, getChargesFromPm, getCaseLinkFromPm, bulletify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, checkCases, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff;
+  var request, ref$, checkIfElementInDb, db, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, Inbox, settings, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, cheekySayings, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, transformStrings, bulletify, smallify, numberify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   request = require('request');
   ref$ = require('./core'), checkIfElementInDb = ref$.checkIfElementInDb, db = ref$.db, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
+  Inbox = require('./mail');
   settings = require('../../settings').modules.bailiff;
   subreddit = settings.subreddit;
   username = robot.options.login.username;
+  inbox = new Inbox;
   sameLength = over(curry$(function(x$, y$){
     return x$ === y$;
   }), function(it){
     return it.length;
   });
+  substr = function(sub, str){
+    return new RegExp(sub).test(str);
+  };
+  wholestr = function(sub, str){
+    return new RegExp("^" + sub + "$").test(str);
+  };
+  spoiler = function(link, spoiler){
+    return "[" + link + "](#s '" + spoiler + "')";
+  };
   cheekySayings = ["YOUR FLAWED ATTEMPTS AT EVADING JUSTICE HAVE FAILED.", "WHY AM I TYPING IN ALL CAPS?", "DISPENSATION OF JUSTICE COMMENCES NOW.", "WHERE IS YOUR GOD NOW?", "ARE YOU NOT ENTERTAINED?", "YOU HAD ME AT HELLO!", "YOU CAN'T HANDLE THE TRUTH.", "AM I HUMAN? AM I DANCER?", "TEACH ME HOW TO LOVE.", "IS THIS THE REAL LIFE?", "IS THIS JUST FANTASY?"];
-  getRandomCheekySaying = function(){
+  roles = ["the guy who plays AC/DC in the back of the room, not paying attention to the trial.", "Zoidberg (/)(°,,,°)(/)", "the guy who gasps at the inhumanity ⊙▃⊙", "the guy who stands in the back, wearing sunglasses and saying nothing (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄", "a teddy bear! ʕ´•ᴥ•`ʔ", "Homer J. Simpson ~(8 ^(| )", "sitting in the corner, not doing anything, not doing anything at all ... ", "Groot. **I AM GROOT.**", "the guy who sells combination Indian/Pakistani/Mexican food. But only dishes that combine all three.", "the world's smallest violinist, playing the world's largest violin ♫", "someone who tells you how good cake is, while his mouth is full of cake. MM, MM.", "Maximus Decimus Meridius, father to a murdered son, husband to a murdered wife. And I will have my vengeance, in this life or the next.", "the guy who [spoils](#s 'Snape kills Dumbledore') Harry Potter.", "the guy who [spoils](#s 'Jesus dies') Passion of the Christ.", "the guy who [spoils](#s 'Darth Vader is Luke's father') Star Wars."];
+  getRandomElementFrom = function(list){
     var ind;
-    ind = floor(Math.random() * cheekySayings.length);
-    return cheekySayings[ind];
+    ind = floor(Math.random() * list.length);
+    return list[ind];
   };
   getDefendantsFromTitle = function(title){
     var defendants, users;
@@ -31,38 +43,48 @@
     charges = recurseThroughRe(/^\*\*CHARGE:?\*\*\s*(.+)$/gm, body);
     return charges;
   };
-  getDefendantsFromPm = function(pm){
+  getDefendantsFromConfirmation = function(pm){
     var defendants;
     defendants = recurseThroughRe(/^\* (\/u\/\w+)$/img, pm);
     return defendants;
   };
-  getChargesFromPm = function(pm){
+  getChargesFromConfirmation = function(pm){
     var charges;
     charges = recurseThroughRe(/^\*\s([^\/u\/].+)$/m, pm);
     return charges;
   };
-  getCaseLinkFromPm = function(pm){
-    var link;
-    link = /Concerning \[this post\]\((.+)\):/.exec(pm);
-    return link[1];
-  };
-  bulletify = function(arr){
+  transformStrings = curry$(function(initial, joiner, arr){
     var theHead, theTail;
-    theHead = '* ' + arr[0];
-    theTail = join('\n* ', [''].concat(tail(arr)));
+    theHead = initial + head(arr);
+    theTail = join(joiner, [''].concat(tail(arr)));
     return theHead + theTail;
+  });
+  bulletify = transformStrings('* ', '\n* ');
+  smallify = transformStrings('^^^^^^^^', ' ^^^^^^^^');
+  numberify = function(strings){
+    var i, str;
+    return (function(){
+      var i$, ref$, len$, results$ = [];
+      for (i$ = 0, len$ = (ref$ = strings).length; i$ < len$; ++i$) {
+        i = i$;
+        str = ref$[i$];
+        results$.push("[" + i + "](" + str + ")");
+      }
+      return results$;
+    }());
   };
-  summonsText = function(charges, caseLink){
-    var satirical, rights, msg;
+  summonsText = function(charges, id){
+    var caseLink, satirical, rights, msg;
+    caseLink = "http://redd.it/" + id;
     charges = bulletify(charges);
     satirical = 'https://www.reddit.com/r/KarmaCourt/wiki/constitution#wiki_article_iv._karmacourt_is_funny_satire';
     rights = 'https://www.reddit.com/r/KarmaCourt/wiki/constitution#wiki_article_vi._the_bill_of_rights';
-    msg = "You are hereby summoned to /r/KarmaCourt on the following charges:\n\n" + charges + "\n\nYour court case can be found [here](" + caseLink + ").\n\n---\n\nIf no one represents you the case will not go forward. You may represent yourself.\n\nKarmaCourt is [satirical](" + satirical + ")\nand not to be taken seriously.\n\nKnow your [rights](" + rights + ").";
+    msg = "You are hereby summoned to /r/KarmaCourt on the following charges:\n\n" + charges + "\n\nYour court case can be found [here](" + caseLink + ").\n\n---\n\nIf no one represents you the case will not go forward.\nYou may represent yourself.\n\nKarmaCourt is [satirical](" + satirical + ")\nand not to be taken seriously.\n\nKnow your [rights](" + rights + ").";
     return msg;
   };
-  sendSummons = function(caseLink, charges, defendants){
+  sendSummons = function(caseId, charges, defendants){
     var msg, i$, len$, results$ = [];
-    msg = summonsText(charges, caseLink);
+    msg = summonsText(charges, caseId);
     for (i$ = 0, len$ = defendants.length; i$ < len$; ++i$) {
       results$.push((fn$.call(this, defendants[i$])));
     }
@@ -71,97 +93,160 @@
       return sendPm("KARMACOURT SUMMONS", msg, scumbag);
     }
   };
-  declareBailiffnessToCourt = function(caseLink, charges, defendants){
-    var summons, caseName, msg;
+  declareBailiffnessToCourt = function(caseId, replyName, charges, defendants){
+    var summons, msg;
     defendants = join(', ')(
     map(function(it){
       return it.toLowerCase();
     })(
     defendants));
-    summons = summonsText(charges, caseLink);
-    caseName = /http:\/\/redd\.it\/(\w{6})/.exec(caseLink)[1];
-    msg = "`I AM " + username + ". I WILL BE THE BAILIFFBOT FOR THIS CASE.`\n\n`THE FOLLOWING SCUMBAG(S) HAVE BEEN AUTOMATICALLY SUMMONED:`\n\n" + defendants + "\n\n`THE SUMMONS TEXT IS AS FOLLOWS:`\n\n---\n---\n\n" + summons + "\n\n---\n---\n\n`THE BAILIFFBOT WILL NOW UNDERGO COMPUTRONIC SLEEP PROCEDURES. GOODBYE!`";
-    return replyTo("t3_" + caseName, msg);
+    summons = summonsText(charges, caseId);
+    msg = "The following scumbag(s) have been automatically summoned:\n\n" + defendants + "\n\nThe summons text is as follows:\n\n---\n---\n\n" + summons + "\n\n---\n---\n";
+    return replyTo(replyName, msg);
   };
   checkMail = function(){
-    return robot.get("/message/messages.json", {
-      limit: 5
-    }, function(err, res, bod){
-      var sentByMe, hasReplies, positives, pms, i$, len$, results$ = [];
+    inbox.getMentions(function(err, res, bod){
+      var i$, len$, results$ = [];
       if (err || !res) {
-        return say("Something went wrong, bailiff-get-messages");
+        return say('Error: inbox.get-mentions');
       }
       if (res.statusCode !== 200) {
-        return say("Something went wrong: " + res.statusCode + ", bailiff-get-messages");
+        return say("Error: " + res.statusCode + ", inbox.get-mentions");
       }
-      sentByMe = function(it){
-        return it.subject === 'Are these right?';
-      };
-      hasReplies = function(it){
-        return it.replies !== '';
-      };
-      positives = function(it){
-        return /^y(es)?$/i.test(it.body);
-      };
-      pms = filter(hasReplies)(
-      filter(sentByMe)(
-      simplifyListing(
-      bod)));
-      for (i$ = 0, len$ = pms.length; i$ < len$; ++i$) {
-        results$.push((fn$.call(this, pms[i$])));
+      for (i$ = 0, len$ = bod.length; i$ < len$; ++i$) {
+        results$.push((fn$.call(this, bod[i$])));
       }
       return results$;
       function fn$(pm){
-        var correct;
-        correct = filter(positives)(
-        map(function(it){
-          return it.data;
-        })(
-        function(it){
-          return it.data.children;
-        }(
-        pm.replies)));
-        if (correct.length === 1) {
-          return checkIfElementInDb(correct[0], 'acknowledgedPms', function(exists){
-            var caseLink, charges, defendants;
-            if (exists) {
-              replyTo(correct[0].name, "Acknowledged.");
-              commitArrayToDb(correct, 'acknowledgedPms');
-              caseLink = getCaseLinkFromPm(pm.body);
-              charges = getChargesFromPm(pm.body);
-              defendants = getDefendantsFromPm(pm.body);
-              sendSummons(caseLink, charges, defendants);
-              return declareBailiffnessToCourt(caseLink, charges, defendants);
-            }
-          });
-        }
+        return checkCase(pm);
+      }
+    });
+    return inbox.getCommentReplies(function(err, res, bod){
+      var i$, len$, results$ = [];
+      if (err || !res) {
+        return;
+      }
+      if (res.statusCode !== 200) {
+        return say("Error: " + res.statusCode + ", inbox.get-replies");
+      }
+      for (i$ = 0, len$ = bod.length; i$ < len$; ++i$) {
+        results$.push((fn$.call(this, bod[i$])));
+      }
+      return results$;
+      function fn$(reply){
+        return confirmCase(reply);
       }
     });
   };
-  checkCases = function(cases){
-    var i$, len$, results$ = [];
-    for (i$ = 0, len$ = cases.length; i$ < len$; ++i$) {
-      results$.push((fn$.call(this, cases[i$])));
+  confirmCase = function(reply){
+    var validConfirmations, isValid, conf;
+    if (reply.author !== recipient) {
+      return;
     }
-    return results$;
-    function fn$(post){
-      return checkIfElementInDb(post, 'bailiffCases', function(exists){
-        var defendants, charges, title, msg;
-        defendants = getDefendantsFromTitle(post.title);
-        charges = getChargesFromBody(post.selftext);
-        if (defendants.length > 0 && charges.length > 0 && exists) {
-          title = 'Are these right?';
-          defendants = map(function(it){
-            return it.toLowerCase();
-          }, defendants);
-          charges = bulletify(charges);
-          defendants = bulletify(defendants);
-          msg = "Concerning [this post](http://redd.it/" + post.id + "):\n\n**DEFENDANTS**:\n\n" + defendants + "\n\n**CHARGES**:\n\n" + charges;
-          sendPm(title, msg, recipient);
-          return commitArrayToDb([post], 'bailiffCases');
+    validConfirmations = ["yes", "y", "You're goddamn right."];
+    isValid = fold1(curry$(function(x$, y$){
+      return x$ || y$;
+    }), (function(){
+      var i$, ref$, len$, results$ = [];
+      for (i$ = 0, len$ = (ref$ = validConfirmations).length; i$ < len$; ++i$) {
+        conf = ref$[i$];
+        results$.push(wholestr(conf, reply.body));
+      }
+      return results$;
+    }()));
+    if (!isValid) {
+      return;
+    }
+    return checkIfElementInDb(reply, 'acknowledgedPms', function(exists){
+      var caseId;
+      if (exists) {
+        return;
+      }
+      commitArrayToDb([reply], 'acknowledgedPms');
+      caseId = /\/comments\/(\w{6})\//.exec(reply.context)[1];
+      return robot.get("/r/" + subreddit + "/comments/" + caseId + ".json", {
+        comment: unchars(slice$.call(reply.parent_id, 3))
+      }, function(err, res, bod){
+        var text, charges, defendants;
+        if (err || !res) {
+          return say("Error: confirm-case");
         }
+        if (res.statusCode !== 200) {
+          return say("Error: " + res.statusCode + ", confirm-case");
+        }
+        text = function(it){
+          return it[0].body;
+        }(
+        simplifyListing(
+        function(it){
+          return it[1];
+        }(
+        JSON.parse(
+        bod))));
+        charges = getChargesFromConfirmation(text);
+        defendants = getDefendantsFromConfirmation(text);
+        sendSummons(caseId, charges, defendants);
+        return declareBailiffnessToCourt(caseId, reply.name, charges, defendants);
       });
+    });
+  };
+  checkCase = function(pm){
+    if (pm['new']) {
+      inbox.read(pm);
     }
+    if (pm.author !== recipient) {
+      return;
+    }
+    return checkIfElementInDb(pm, 'receivedPms', function(exists){
+      var validSummons, isValid, summs, id;
+      if (exists) {
+        return;
+      }
+      commitArrayToDb([pm], 'receivedPms');
+      validSummons = ["bailiffy this case", "summon these scumbags", "summon this scumbag", "summon the defendant", "summon the defendants", "serve this scumbag", "serve these scumbags"];
+      isValid = fold1(curry$(function(x$, y$){
+        return x$ || y$;
+      }), (function(){
+        var i$, ref$, len$, results$ = [];
+        for (i$ = 0, len$ = (ref$ = validSummons).length; i$ < len$; ++i$) {
+          summs = ref$[i$];
+          results$.push(substr(summs, pm.body));
+        }
+        return results$;
+      }()));
+      if (!isValid) {
+        return;
+      }
+      id = 't3_' + /comments\/(\w{6})\//.exec(pm.context)[1];
+      return robot.get("/by_id/" + id, function(err, res, bod){
+        var post;
+        if (err || !res) {
+          return say("Error: check-case");
+        }
+        if (res.statusCode !== 200) {
+          return say("Error: " + res.statusCode + ", check-case");
+        }
+        post = simplifyListing(bod)[0];
+        return checkIfElementInDb(post, 'bailiffCases', function(exists){
+          var defendants, charges, msg;
+          if (exists) {
+            return;
+          }
+          defendants = getDefendantsFromTitle(post.title);
+          charges = getChargesFromBody(post.selftext);
+          if (defendants.length > 0 && charges.length > 0) {
+            defendants = map(function(it){
+              return it.toLowerCase();
+            }, defendants);
+            charges = bulletify(charges);
+            defendants = bulletify(defendants);
+            msg = "Are these the defendants and charges?\n\n**DEFENDANTS**:\n\n" + defendants + "\n\n**CHARGES**:\n\n" + charges;
+            replyTo(pm.name, msg);
+            return commitArrayToDb([post], 'bailiffCases');
+          }
+        });
+      });
+    });
   };
   submitEvidenceToArchive = function(post, cb){
     var getRedirectLinkFrom, selftext;
@@ -172,14 +257,15 @@
     selftext = post.selftext;
     return checkIfElementInDb(post, 'bailiffEvidence', function(exists){
       var evidence, archivedEvidence, i$, len$, results$ = [];
-      if (!exists) {
-        evidence = getEvidenceFrom(selftext);
-        archivedEvidence = [];
-        for (i$ = 0, len$ = evidence.length; i$ < len$; ++i$) {
-          results$.push((fn$.call(this, evidence[i$])));
-        }
-        return results$;
+      if (exists) {
+        return;
       }
+      evidence = getEvidenceFrom(selftext);
+      archivedEvidence = [];
+      for (i$ = 0, len$ = evidence.length; i$ < len$; ++i$) {
+        results$.push((fn$.call(this, evidence[i$])));
+      }
+      return results$;
       function fn$(url){
         var params;
         say("making request to archive.today");
@@ -192,6 +278,9 @@
         return request.post(params, function(err, res, bod){
           if (err || !res) {
             return say("Something went wrong, submit-evidence-to-archive");
+          }
+          if (res.statusCode !== 200) {
+            return say("Something went wrong: " + res.statusCode + ", submit-evidence-to-archive");
           }
           archivedEvidence.push(getRedirectLinkFrom(bod));
           if (sameLength(archivedEvidence, evidence)) {
@@ -208,9 +297,15 @@
     return evidence;
   };
   reportEvidenceToCourt = function(archive, post){
-    var postableEvidence, msg;
-    postableEvidence = bulletify(archive);
-    msg = "`I AM " + username + ". " + getRandomCheekySaying() + "`\n\n`THE EVIDENCE HAS BEEN ARCHIVED:`\n\n" + postableEvidence;
+    var my, role, declare, renderedEvidence, signature, msg;
+    my = spoiler("I'll be", "IAMA BOT, AMA");
+    role = getRandomElementFrom(roles);
+    declare = smallify(['The', 'following', 'is', 'an', 'archive', 'of', 'the', 'evidence:']);
+    renderedEvidence = smallify(
+    numberify(
+    archive));
+    signature = smallify(['This', 'bot', 'by', "/u/" + recipient + ".", 'Code', 'viewable', 'at', "github.com/" + recipient + "/" + username]);
+    msg = "" + my + " " + role + "\n\n" + declare + " " + renderedEvidence + " " + signature;
     replyTo(post.name, msg);
     return commitArrayToDb([post], 'bailiffEvidence');
   };
@@ -226,7 +321,6 @@
         return say("Something went wrong: " + res.statusCode + ", bailiff-get-new-cases");
       }
       cases = simplifyListing(bod);
-      checkCases(cases);
       for (i$ = 0, len$ = cases.length; i$ < len$; ++i$) {
         results$.push((fn$.call(this, cases[i$])));
       }

@@ -124,10 +124,10 @@
       keyword = getKeywordFrom(post) || 'one of your keywords';
       switch (false) {
       case !/t3/.test(post.name):
-        msg = msg + ("\n\n> `" + post.author + "` mentioned [" + keyword + "](" + post.url + ") `in` /r/" + post.subreddit);
+        msg = msg + ("\n\n> `" + post.author + "` mentioned [" + keyword + "](" + post.url + "?context=3) `in` /r/" + post.subreddit);
         break;
       case !/t1/.test(post.name):
-        url = "/r/" + post.subreddit + "/comments/" + join('', slice$.call(post.link_id, 3)) + "/" + username + "/" + post.id;
+        url = "/r/" + post.subreddit + "/comments/" + join('', slice$.call(post.link_id, 3)) + "/" + username + "/" + post.id + "?context=3";
         msg = msg + ("\n\n> /u/" + post.author + " mentioned [" + keyword + "](" + url + ") in /r/" + post.subreddit);
       }
     }

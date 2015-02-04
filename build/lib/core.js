@@ -90,7 +90,7 @@
         return checkIfElementInDb(element, collection, function(exists){
           if (!exists) {
             db[collection].insert(element);
-            say("inserted " + element.name + " to database");
+            say("inserted " + element.name + " to database " + collection);
             arr.push(element);
           }
           if (i === array.length - 1) {
