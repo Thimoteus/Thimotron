@@ -1,7 +1,7 @@
 {capitalize} = require 'prelude-ls'
 {robot, simplify-listing} = require './core'
 
-# possible folders to check in your inbox
+## possible folders to check in your inbox
 folders =
    * \unread
    * \inbox
@@ -12,49 +12,53 @@ folders =
    * \sent
    * \moderator
 
-# shortcut for returning an array of a listing
-listify = (cb, err, res, bod) --> cb err, res, simplify-listing bod
+## shortcut for returning an array of a listing
+listify = (cb, err, res, bod) -->
+   if res and res.status-code is 200 => bod = simplify-listing bod
+   cb err, res, bod
 
-# curried function to get any folder
+## curried function to get any folder
 get-folder = (folder, limit, cb) --> robot.get "/message/#folder.json", limit: limit, listify cb
 
-# the real deal
+## the real deal
 class Inbox
-   # limit restricts how many messages to check
+   ## limit restricts how many messages to check
    (@limit = 5) ~> folders
 
-   ########## GETTING PMS ##########
+   ## GETTING PMS
+   ## ----------
 
-   # gets unread messages
+   ## gets unread messages
    get-unread: get-folder 'unread', @limit
 
-   # gets the entire inbox
+   ## gets the entire inbox
    get-inbox: get-folder 'inbox', @limit
 
-   # gets username mentions
+   ## gets username mentions
    get-mentions: get-folder 'mentions', @limit
 
-   # gets replies to comments
+   ## gets replies to comments
    get-comment-replies: get-folder 'comments', @limit
 
-   # gets replies to posts
+   ## gets replies to posts
    get-post-replies: get-folder 'selfreply', @limit
 
-   # gets all messages
+   ## gets all messages
    get-messages: get-folder 'messages', @limit
 
-   # gets sent messages
+   ## gets sent messages
    get-sent: get-folder 'sent', @limit
 
-   # gets moderator mail
+   ## gets moderator mail
    get-moderator: get-folder 'moderator', @limit
 
-   ########## READING PMS ##########
+   ## READING PMS
+   ## ----------
 
-   # reads a pm
+   ## reads a pm
    read: (pm, cb) -> robot.post '/api/read_message', id: pm.name, cb
 
-   # reads all pms
+   ## reads all pms
    read-all: (cb) -> robot.post '/api/read_all_messages', cb
 
 module.exports = Inbox

@@ -15,8 +15,8 @@ const secret = settings.oauth.client_secret
 const recipient = settings.recipient
 const talkative = settings.verbose or false
 
-# Jaraw lets us access the reddit API
-# with a minimum of hassle.
+## Jaraw lets us access the reddit API
+## with a minimum of hassle.
 robot = new Jaraw do
    type: \script
    login:
@@ -28,15 +28,15 @@ robot = new Jaraw do
    user_agent: user-agent
    rate_limit: 1_000ms
 
-# console.log for debugging
+## console.log for debugging
 say = -> if talkative => console.log it
 
-# basic login function
+## basic login function
 login = (cb) ->
    say "#username is initializing"
    robot.login-as-script cb
 
-# takes a number `t` of milliseconds, `f` a function, `n` a string describing `f`, optional arguments and repeats `f` every `t`
+## takes a number `t` of milliseconds, `f` a function, `n` a string describing `f`, optional arguments and repeats `f` every `t`
 repeat = (t, f, n, ...args) ->
    fn = ->
       set-timeout fn, t
@@ -44,7 +44,7 @@ repeat = (t, f, n, ...args) ->
       f ...args
    fn!
 
-# takes a regular expression and a string and returns an array of all matches in the string
+## takes a regular expression and a string and returns an array of all matches in the string
 recurse-through-re = (re, str) -->
    flag = 'g'
    flag += 'i' if re.ignore-case
@@ -55,7 +55,7 @@ recurse-through-re = (re, str) -->
       ret.push hit.1
    return ret
 
-# applies JSON.parse when possible, otherwise is the identity
+## applies JSON.parse when possible, otherwise is the identity
 JSONparse = ->
    try
       b = JSON.parse it
@@ -66,11 +66,11 @@ JSONparse = ->
       else
          throw e
 
-# useful for simplifying "list" responses from reddit
+## useful for simplifying "list" responses from reddit
 simplify-listing = JSONparse >> (.data.children) >> map (.data)
 
-# takes an array and inserts each element into `db-collection`, unless that element is already in (based on a .name attribute)
-# useful for putting listings (by using simplify-listing) into a db
+## takes an array and inserts each element into `db-collection`, unless that element is already in (based on a .name attribute)
+## useful for putting listings (by using simplify-listing) into a db
 commit-array-to-db = (array, collection, cb = id) ->
    arr = []
    if array.length > 0 => for let element, i in array
@@ -83,13 +83,13 @@ commit-array-to-db = (array, collection, cb = id) ->
       if i == array.length - 1 => return cb arr
    return cb arr
 
-# returns true if `el` is in `collection` of the database, otherwise false
+## returns true if `el` is in `collection` of the database, otherwise false
 check-if-element-in-db = (el, collection, cb = id) ->
    db[collection].find name: el.name .limit 1 .count (err, count) ->
       ret = count != 0
       cb ret
 
-# sends a reply to `dest` with message `text`
+## sends a reply to `dest` with message `text`
 reply-to = (dest, text) ->
    params =
       thing_id: dest
@@ -100,7 +100,7 @@ reply-to = (dest, text) ->
       if res.status-code isnt 200 => return say "Error: #{res.status-code}, reply-to"
       return say "Reply sent:\nDest: #dest\nText: #text"
 
-# sends a pm with subject `title` to `receiver` with message `body`
+## sends a pm with subject `title` to `receiver` with message `body`
 send-pm = (title, body, receiver) ->
    if /\/u\//.test receiver => receiver = unchars receiver[3 to]
    params =
@@ -113,7 +113,7 @@ send-pm = (title, body, receiver) ->
       if res.status-code isnt 200 => return say "Error: #{res.status-code}, send-pm"
       return say "PM sent:\nRecipient: #receiver\nTitle: #title\nBody: #body"
 
-# where the magic happens
+## where the magic happens
 module.exports =
    login: login
    recipient: recipient

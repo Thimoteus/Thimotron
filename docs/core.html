@@ -77,18 +77,18 @@
 Jaraw = <span class="hljs-built_in">require</span> <span class="hljs-string">'jaraw'</span>
 mongo = <span class="hljs-built_in">require</span> <span class="hljs-string">'mongojs'</span>
 
-<span class="hljs-reserved">const</span> settings = <span class="hljs-built_in">require</span> <span class="hljs-string">'../../settings'</span>
-<span class="hljs-reserved">const</span> db-name = settings.db.name <span class="hljs-keyword">or</span> <span class="hljs-string">'bot'</span>
-<span class="hljs-reserved">const</span> db-collections = &lt;[ mentions receivedPms acknowledgedPms bailiffCases bailiffEvidence ]&gt;
-<span class="hljs-reserved">const</span> db = mongo db-name, db-collections
+<span class="hljs-keyword">const</span> settings = <span class="hljs-built_in">require</span> <span class="hljs-string">'../../settings'</span>
+<span class="hljs-keyword">const</span> db-name = settings.db.name <span class="hljs-keyword">or</span> <span class="hljs-string">'bot'</span>
+<span class="hljs-keyword">const</span> db-collections = &lt;[ mentions receivedPms acknowledgedPms bailiffCases bailiffEvidence ]&gt;
+<span class="hljs-keyword">const</span> db = mongo db-name, db-collections
 
-<span class="hljs-reserved">const</span> user-agent = <span class="hljs-string">"<span class="hljs-subst">#{settings.info.name}</span>@<span class="hljs-subst">#{settings.info.version <span class="hljs-keyword">or</span> <span class="hljs-string">'1.0.0'</span>}</span> by <span class="hljs-subst">#{settings.info.author <span class="hljs-keyword">or</span> <span class="hljs-string">''</span>}</span>"</span>
-<span class="hljs-reserved">const</span> username = settings.login.username
-<span class="hljs-reserved">const</span> password = settings.login.password
-<span class="hljs-reserved">const</span> client-id = settings.oauth.client_id
-<span class="hljs-reserved">const</span> secret = settings.oauth.client_secret
-<span class="hljs-reserved">const</span> recipient = settings.recipient
-<span class="hljs-reserved">const</span> talkative = settings.verbose <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span></pre></div></div>
+<span class="hljs-keyword">const</span> user-agent = <span class="hljs-string">"<span class="hljs-subst">#{settings.info.name}</span>@<span class="hljs-subst">#{settings.info.version <span class="hljs-keyword">or</span> <span class="hljs-string">'1.0.0'</span>}</span> by <span class="hljs-subst">#{settings.info.author <span class="hljs-keyword">or</span> <span class="hljs-string">''</span>}</span>"</span>
+<span class="hljs-keyword">const</span> username = settings.login.username
+<span class="hljs-keyword">const</span> password = settings.login.password
+<span class="hljs-keyword">const</span> client-id = settings.oauth.client_id
+<span class="hljs-keyword">const</span> secret = settings.oauth.client_secret
+<span class="hljs-keyword">const</span> recipient = settings.recipient
+<span class="hljs-keyword">const</span> talkative = settings.verbose <span class="hljs-keyword">or</span> <span class="hljs-literal">false</span></pre></div></div>
             
         </li>
         
@@ -105,7 +105,7 @@ with a minimum of hassle.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>robot = <span class="hljs-keyword">new</span> Jaraw <span class="hljs-keyword">do</span>
-   <span class="hljs-attribute">type</span>: \script
+   <span class="hljs-attribute">type</span>: <span class="hljs-string">\script</span>
    <span class="hljs-attribute">login</span>:
       <span class="hljs-attribute">username</span>: username
       <span class="hljs-attribute">password</span>: password
@@ -113,7 +113,7 @@ with a minimum of hassle.</p>
       <span class="hljs-attribute">id</span>: client-id
       <span class="hljs-attribute">secret</span>: secret
    <span class="hljs-attribute">user_agent</span>: user-agent
-   <span class="hljs-attribute">rate_limit</span>: <span class="hljs-number">1</span>_000ms</pre></div></div>
+   <span class="hljs-attribute">rate_limit</span>: <span class="hljs-number">1_000ms</span></pre></div></div>
             
         </li>
         
@@ -128,7 +128,7 @@ with a minimum of hassle.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">say</span> = -&gt;</span> <span class="hljs-built_in">console</span>.log it <span class="hljs-keyword">if</span> talkative</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">say</span> = -&gt;</span> <span class="hljs-keyword">if</span> talkative =&gt; <span class="hljs-built_in">console</span>.log <span class="hljs-literal">it</span></pre></div></div>
             
         </li>
         
@@ -144,7 +144,7 @@ with a minimum of hassle.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">login</span> = <span class="hljs-params">(cb)</span> -&gt;</span>
-   say <span class="hljs-string">"#username is initializing"</span>
+   say <span class="hljs-string">"<span class="hljs-subst">#username</span> is initializing"</span>
    robot.login-as-script cb</pre></div></div>
             
         </li>
@@ -161,9 +161,9 @@ with a minimum of hassle.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">repeat</span> = <span class="hljs-params">(t, f, n, ...args)</span> -&gt;</span>
-<span class="hljs-function">   <span class="hljs-title">fn</span> = -&gt;</span>
+   <span class="hljs-function"><span class="hljs-title">fn</span> = -&gt;</span>
       set-timeout fn, t
-      say <span class="hljs-string">"Beginning new loop for #n"</span>
+      say <span class="hljs-string">"Beginning new loop for <span class="hljs-subst">#n</span>"</span>
       f ...args
    fn!</pre></div></div>
             
@@ -180,14 +180,14 @@ with a minimum of hassle.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>recurse-through-re = (re, str) --&gt;
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">recurse-through-re</span> = <span class="hljs-params">(re, str)</span> --&gt;</span>
    flag = <span class="hljs-string">'g'</span>
-   flag += <span class="hljs-string">'i'</span> <span class="hljs-keyword">if</span> re.ignore-<span class="hljs-reserved">case</span>
+   flag += <span class="hljs-string">'i'</span> <span class="hljs-keyword">if</span> re.ignore-<span class="hljs-keyword">case</span>
    flag += <span class="hljs-string">'m'</span> <span class="hljs-keyword">if</span> re.multiline
    rx = <span class="hljs-keyword">new</span> RegExp re.source, flag
    ret = []
    <span class="hljs-keyword">while</span> hit = rx.exec str
-      ret.push hit<span class="hljs-number">.1</span>
+      ret.push hit.<span class="hljs-number">1</span>
    <span class="hljs-keyword">return</span> ret</pre></div></div>
             
         </li>
@@ -205,11 +205,11 @@ with a minimum of hassle.</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">JSONparse</span> = -&gt;</span>
    <span class="hljs-keyword">try</span>
-      b = JSON.parse it
+      b = JSON.parse <span class="hljs-literal">it</span>
       <span class="hljs-keyword">return</span> b
    <span class="hljs-keyword">catch</span>
       <span class="hljs-keyword">if</span> e <span class="hljs-keyword">instanceof</span> SyntaxError
-         <span class="hljs-keyword">return</span> it
+         <span class="hljs-keyword">return</span> <span class="hljs-literal">it</span>
       <span class="hljs-keyword">else</span>
          <span class="hljs-keyword">throw</span> e</pre></div></div>
             
@@ -237,22 +237,22 @@ with a minimum of hassle.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
-              <p>takes an array and inserts each element into <code>db-collection</code>, unless that element is already in (based on a .name attribute)</p>
+              <p>takes an array and inserts each element into <code>db-collection</code>, unless that element is already in (based on a .name attribute)
+useful for putting listings (by using simplify-listing) into a db</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>commit-array-to-db = <span class="hljs-function"><span class="hljs-params">(array, collection, cb = id)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">commit-array-to-db</span> = <span class="hljs-params">(array, collection, cb = id)</span> -&gt;</span>
    arr = []
-   <span class="hljs-keyword">if</span> array.length &gt; <span class="hljs-number">0</span>
-      (element, i) &lt;- array.forEach
+   <span class="hljs-keyword">if</span> array.length &gt; <span class="hljs-number">0</span> =&gt; <span class="hljs-keyword">for</span> <span class="hljs-keyword">let</span> element, i <span class="hljs-keyword">in</span> array
       (exists) &lt;- check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-db element, collection
-      <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> exists
-         db[collection].insert element
-         say <span class="hljs-string">"inserted <span class="hljs-subst">#{element.name}</span> to database #collection"</span>
-         arr.push element
+      <span class="hljs-keyword">if</span> exists =&gt; <span class="hljs-keyword">return</span>
+
+      db[collection].insert element
+      say <span class="hljs-string">"inserted <span class="hljs-subst">#{element.name}</span> to database <span class="hljs-subst">#collection</span>"</span>
+      arr.push element
       <span class="hljs-keyword">if</span> i == array.length - <span class="hljs-number">1</span> =&gt; <span class="hljs-keyword">return</span> cb arr
-   <span class="hljs-keyword">else</span>
-      <span class="hljs-keyword">return</span> cb arr</pre></div></div>
+   <span class="hljs-keyword">return</span> cb arr</pre></div></div>
             
         </li>
         
@@ -267,8 +267,8 @@ with a minimum of hassle.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-db = <span class="hljs-function"><span class="hljs-params">(el, collection, cb = id)</span> -&gt;</span>
-   db[collection].find <span class="hljs-attribute">name</span>: el.name .limit <span class="hljs-number">1</span> .count (err, count) -&gt;
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">check-if-element-in-db</span> = <span class="hljs-params">(el, collection, cb = id)</span> -&gt;</span>
+   db[collection].find <span class="hljs-attribute">name</span>: el.name .limit <span class="hljs-number">1</span> .count <span class="hljs-function"><span class="hljs-params">(err, count)</span> -&gt;</span>
       ret = count != <span class="hljs-number">0</span>
       cb ret</pre></div></div>
             
@@ -285,15 +285,15 @@ with a minimum of hassle.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>reply-to = <span class="hljs-function"><span class="hljs-params">(dest, text)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">reply-to</span> = <span class="hljs-params">(dest, text)</span> -&gt;</span>
    params =
       <span class="hljs-attribute">thing_id</span>: dest
       <span class="hljs-attribute">text</span>: text
       <span class="hljs-attribute">api_type</span>: <span class="hljs-string">'json'</span>
    robot.post <span class="hljs-string">"/api/comment"</span>, params, <span class="hljs-function"><span class="hljs-params">(err, res, bod)</span> -&gt;</span>
-      <span class="hljs-keyword">if</span> err <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> res =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong, reply-to"</span>
-      <span class="hljs-keyword">if</span> res.status-code <span class="hljs-keyword">isnt</span> <span class="hljs-number">200</span> =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong: <span class="hljs-subst">#{res.status-code}</span>, reply-to"</span>
-      <span class="hljs-keyword">return</span> say <span class="hljs-string">"Reply sent:\nDest: #dest\nText: #text"</span></pre></div></div>
+      <span class="hljs-keyword">if</span> err <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> res =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Error: reply-to"</span>
+      <span class="hljs-keyword">if</span> res.status-code <span class="hljs-keyword">isnt</span> <span class="hljs-number">200</span> =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Error: <span class="hljs-subst">#{res.status-code}</span>, reply-to"</span>
+      <span class="hljs-keyword">return</span> say <span class="hljs-string">"Reply sent:\nDest: <span class="hljs-subst">#dest</span>\nText: <span class="hljs-subst">#text</span>"</span></pre></div></div>
             
         </li>
         
@@ -308,17 +308,17 @@ with a minimum of hassle.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>send-pm = <span class="hljs-function"><span class="hljs-params">(title, body, receiver)</span> -&gt;</span>
-   <span class="hljs-keyword">if</span> <span class="hljs-regexp">/\/u\//</span>.test receiver =&gt; receiver = unchars receiver[<span class="hljs-number">3</span> to]
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">send-pm</span> = <span class="hljs-params">(title, body, receiver)</span> -&gt;</span>
+   <span class="hljs-keyword">if</span> <span class="hljs-pi">/\/u\//</span>.test receiver =&gt; receiver = unchars receiver[<span class="hljs-number">3</span> <span class="hljs-keyword">to</span>]
    params =
       <span class="hljs-attribute">api_type</span>: <span class="hljs-string">'json'</span>
       <span class="hljs-attribute">subject</span>: title
       <span class="hljs-attribute">text</span>: body
       <span class="hljs-attribute">to</span>: receiver
    robot.post <span class="hljs-string">"/api/compose"</span>, params, <span class="hljs-function"><span class="hljs-params">(err, res, bod)</span> -&gt;</span>
-      <span class="hljs-keyword">if</span> err <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> res =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong, send-pm"</span>
-      <span class="hljs-keyword">if</span> res.status-code <span class="hljs-keyword">isnt</span> <span class="hljs-number">200</span> =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong: <span class="hljs-subst">#{res.status-code}</span>, send-pm"</span>
-      <span class="hljs-keyword">return</span> say <span class="hljs-string">"PM sent:\nRecipient: #receiver\nTitle: #title\nBody: #body"</span></pre></div></div>
+      <span class="hljs-keyword">if</span> err <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> res =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Error: send-pm"</span>
+      <span class="hljs-keyword">if</span> res.status-code <span class="hljs-keyword">isnt</span> <span class="hljs-number">200</span> =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Error: <span class="hljs-subst">#{res.status-code}</span>, send-pm"</span>
+      <span class="hljs-keyword">return</span> say <span class="hljs-string">"PM sent:\nRecipient: <span class="hljs-subst">#receiver</span>\nTitle: <span class="hljs-subst">#title</span>\nBody: <span class="hljs-subst">#body</span>"</span></pre></div></div>
             
         </li>
         
@@ -336,16 +336,15 @@ with a minimum of hassle.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports =
    <span class="hljs-attribute">login</span>: login
    <span class="hljs-attribute">recipient</span>: recipient
-   send-<span class="hljs-attribute">pm</span>: send-pm
-   reply-<span class="hljs-attribute">to</span>: reply-to
-   commit-array-to-<span class="hljs-attribute">db</span>: commit-array-to-db
-   recurse-through-<span class="hljs-attribute">re</span>: recurse-through-re
-   simplify-<span class="hljs-attribute">listing</span>: simplify-listing
+   <span class="hljs-attribute">send-pm</span>: send-pm
+   <span class="hljs-attribute">reply-to</span>: reply-<span class="hljs-keyword">to</span>
+   <span class="hljs-attribute">commit-array-to-db</span>: commit-array-<span class="hljs-keyword">to</span>-db
+   <span class="hljs-attribute">recurse-through-re</span>: recurse-through-re
+   <span class="hljs-attribute">simplify-listing</span>: simplify-listing
    <span class="hljs-attribute">repeat</span>: repeat
    <span class="hljs-attribute">say</span>: say
    <span class="hljs-attribute">robot</span>: robot
-   <span class="hljs-attribute">db</span>: db
-   check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-<span class="hljs-attribute">db</span>: check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-db</pre></div></div>
+   <span class="hljs-attribute">check-if-element-in-db</span>: check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-db</pre></div></div>
             
         </li>
         

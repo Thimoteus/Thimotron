@@ -1,7 +1,8 @@
-/* MODULES */
+## MODULES
+## -------
 
 {login, repeat} = require './core'
-{bailiff-cycle-time, bailiff} = require './bailiff'
+{bailiff} = require './bailiff'
 {image-scraper} = require './image-scraper'
 {comments-search, self-texts-search, titles-search} = require './search'
 
@@ -10,5 +11,5 @@ module.exports =
    self-texts-search: self-texts-search
    titles-search: titles-search
    login: login
-   bailiff: -> repeat bailiff-cycle-time, bailiff, 'bailiff'
+   bailiff: bailiff
    image-scraper: image-scraper

@@ -4,7 +4,10 @@
   ref$ = require('./core'), robot = ref$.robot, simplifyListing = ref$.simplifyListing;
   folders = ['unread', 'inbox', 'mentions', 'replies', 'selfreply', 'messages', 'sent', 'moderator'];
   listify = curry$(function(cb, err, res, bod){
-    return cb(err, res, simplifyListing(bod));
+    if (res && res.statusCode === 200) {
+      bod = simplifyListing(bod);
+    }
+    return cb(err, res, bod);
   });
   getFolder = curry$(function(folder, limit, cb){
     return robot.get("/message/" + folder + ".json", {

@@ -70,23 +70,35 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
+              <h2 id="modules">MODULES</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
               
             </div>
             
-            <div class="content"><div class='highlight'><pre>/* MODULES */
+            <div class="content"><div class='highlight'><pre>
+{login, repeat} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
+{bailiff} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./bailiff'</span>
+{image-scraper} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./image-scraper'</span>
+{comments-search, self-texts-search, titles-search} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./search'</span>
 
-{login, repeat} = require './core'
-{bailiff-cycle-time, bailiff} = require './bailiff'
-{image-scraper} = require './image-scraper'
-{comments-search, self-texts-search, titles-search} = require './search'
-
-module.exports =
-   comments-search: comments-search
-   self-texts-search: self-texts-search
-   titles-search: titles-search
-   login: login
-   bailiff: -&gt; repeat bailiff-cycle-time, bailiff, 'bailiff'
-   image-scraper: image-scraper</pre></div></div>
+<span class="hljs-built_in">module</span>.exports =
+   <span class="hljs-attribute">comments-search</span>: comments-search
+   <span class="hljs-attribute">self-texts-search</span>: self-texts-search
+   <span class="hljs-attribute">titles-search</span>: titles-search
+   <span class="hljs-attribute">login</span>: login
+   <span class="hljs-attribute">bailiff</span>: bailiff
+   <span class="hljs-attribute">image-scraper</span>: image-scraper</pre></div></div>
             
         </li>
         
