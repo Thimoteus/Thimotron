@@ -47,10 +47,10 @@
       return robot.get("/r/" + sub + "/new.json", params, function(err, res, bod){
         var after, urls;
         if (err || !res) {
-          return say("Something went wrong, get-image-links");
+          return say("Error: get-image-links");
         }
         if (res.statusCode !== 200) {
-          return say("Something went wrong: " + res.statusCode + ", get-image-links");
+          return say("Error: " + res.statusCode + ", get-image-links");
         }
         after = JSON.parse(bod).data.after;
         urls = map(securify)(

@@ -12,15 +12,21 @@ image-limit = settings.image_limit or 50
 domain = settings.domain or 'imgur.com'
 re = new RegExp domain
 
+## get image links
+## ---------------
 get-image-links = (opts, cb = id) ->
+   # parse options
    if typeof! opts is 'Function' => [opts, cb] = [{}, opts]
    after = opts.after or null
    params =
       after: after
       limit: image-limit
 
+   # we only want domains we know how to handle
    good-domain = -> re.test it.domain
+   # we can't handle albums yet, so we have to test for them
    an-album = -> /\/a\//.test it.url
+   # would rather download securely
    securify = (url) ->
       if /http:/.test url
          return url.replace /http:/, 'https:'
@@ -29,10 +35,11 @@ get-image-links = (opts, cb = id) ->
    for let sub in subs
 
       (err, res, bod) <- robot.get "/r/#{sub}/new.json", params
-      if err or not res => return say "Something went wrong, get-image-links"
-      if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, get-image-links"
+      if err or not res => return say "Error: get-image-links"
+      if res.status-code isnt 200 => return say "Error: #{res.status-code}, get-image-links"
 
       after = JSON.parse bod .data.after
+      ## turns the reddit response into an array of picture urls
       urls = bod |> simplify-listing |> filter good-domain |> filter (not) << an-album |> map (.url) |> map securify
 
       cb urls, after

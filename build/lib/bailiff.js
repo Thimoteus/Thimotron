@@ -1,8 +1,8 @@
 (function(){
-  var request, ref$, checkIfElementInDb, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, Inbox, settings, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, transformStrings, bulletify, smallify, numberify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
+  var request, ref$, repeat, checkIfElementInDb, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, Inbox, settings, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, transformStrings, bulletify, smallify, numberify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   request = require('request');
-  ref$ = require('./core'), checkIfElementInDb = ref$.checkIfElementInDb, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
+  ref$ = require('./core'), repeat = ref$.repeat, checkIfElementInDb = ref$.checkIfElementInDb, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
   Inbox = require('./mail');
   settings = require('../../settings').modules.bailiff;
   subreddit = settings.subreddit;
@@ -67,7 +67,7 @@
       for (i$ = 0, len$ = (ref$ = strings).length; i$ < len$; ++i$) {
         i = i$;
         str = ref$[i$];
-        results$.push("[" + i + "](" + str + ")");
+        results$.push("[" + (i + 1) + "](" + str + ")");
       }
       return results$;
     }());
@@ -336,8 +336,9 @@
     return processCases();
   };
   module.exports = {
-    bailiff: bailiff,
-    bailiffCycleTime: settings.cycle_time
+    bailiff: function(){
+      return repeat(settings.cycle_time, bailiff, 'bailiff');
+    }
   };
   function import$(obj, src){
     var own = {}.hasOwnProperty;

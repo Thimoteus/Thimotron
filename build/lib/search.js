@@ -42,32 +42,16 @@
     }
     subs.forEach(function(sub){
       return robot.get("/r/" + sub + "/" + urlParam + ".json", params, function(err, res, bod){
-        var parsedText, e;
+        var parsedText;
         if (err || !res) {
-          return say("Something went wrong, search");
+          return say("Error: search");
         }
         if (res.statusCode !== 200) {
-          return say("Something went wrong: " + res.statusCode + ", search");
+          return say("Error: " + res.statusCode + ", search");
         }
-        try {
-          parsedText = filter(parseText)(
-          simplifyListing(
-          bod));
-        } catch (e$) {
-          e = e$;
-          if (e instanceof SyntaxError) {
-            say("Reddit took too long to respond");
-            return;
-          } else {
-            if ((res != null ? res.statusCode : void 8) != null) {
-              say(res.statusCode);
-            }
-            if (bod != null) {
-              say(bod);
-            }
-            return;
-          }
-        }
+        parsedText = filter(parseText)(
+        simplifyListing(
+        bod));
         cb(parsedText);
         if (recurse) {
           return search({
@@ -131,7 +115,7 @@
         msg = msg + ("\n\n> /u/" + post.author + " mentioned [" + keyword + "](" + url + ") in /r/" + post.subreddit);
       }
     }
-    msg += "\n\n`This has been a service by " + username + "`";
+    msg += "\n\nThis has been a service by " + username + ".";
     return sendPm("Someone mentioned " + keyword, msg, recipient);
   };
   repeatSelfTextsSearch = function(){
