@@ -1,6 +1,6 @@
 {
   "name": "thimotron",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A reddit bot to do my bidding",
   "homepage": "https://github.com/Thimoteus/Thimotron",
   "author": "Thimoteus",
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "jaraw": "^0.2.1-beta1",
+    "minimist": "^1.1.0",
     "modular-bot": "^1.0.1",
     "mongojs": "^0.18.1",
     "prelude-ls": "^1.1.1",
@@ -19,7 +20,8 @@
     "start": "npm run bot",
     "bot-lsc": "lsc src/index.ls",
     "bot": "npm run compile && node build/index.js",
-    "compile": "lsc -c src/ -o build/ --no-header"
+    "compile": "lsc -c src/ -o build/ --no-header",
+    "build": "npm run compile"
   },
   "devDependencies": {
     "LiveScript": "^1.3.1"

@@ -2,8 +2,8 @@ global <<< require 'prelude-ls'
 require! 'fs'
 require! 'path'
 require! 'request'
-{say, simplify-listing, robot} = require './core'
-settings = require '../../settings' .modules<[ image-scraper ]>
+{say, settings, simplify-listing, robot} = require './core'
+settings = settings.modules<[ image-scraper ]>
 subs = settings.subreddits
 dl-dir = settings.download_directory or './'
 fs.exists dl-dir, (exists) -> if not exists => throw new Error "bad download directory"

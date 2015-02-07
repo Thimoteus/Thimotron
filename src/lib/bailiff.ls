@@ -1,9 +1,9 @@
 ## requirements
 global <<< require 'prelude-ls'
 require! 'request'
-{repeat, check-if-element-in-db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
+{settings, repeat, check-if-element-in-db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
 Inbox = require './mail'
-settings = require '../../settings' .modules.bailiff
+settings = settings.modules.bailiff
 subreddit = settings.subreddit
 username = robot.options.login.username
 inbox = new Inbox

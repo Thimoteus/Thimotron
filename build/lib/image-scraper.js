@@ -1,11 +1,11 @@
 (function(){
-  var fs, path, request, ref$, say, simplifyListing, robot, settings, subs, dlDir, imageLimit, domain, re, getImageLinks, downloadImageLinks, imageScraper, toString$ = {}.toString;
+  var fs, path, request, ref$, say, settings, simplifyListing, robot, subs, dlDir, imageLimit, domain, re, getImageLinks, downloadImageLinks, imageScraper, toString$ = {}.toString;
   import$(global, require('prelude-ls'));
   fs = require('fs');
   path = require('path');
   request = require('request');
-  ref$ = require('./core'), say = ref$.say, simplifyListing = ref$.simplifyListing, robot = ref$.robot;
-  settings = require('../../settings').modules['image-scraper'];
+  ref$ = require('./core'), say = ref$.say, settings = ref$.settings, simplifyListing = ref$.simplifyListing, robot = ref$.robot;
+  settings = settings.modules['image-scraper'];
   subs = settings.subreddits;
   dlDir = settings.download_directory || './';
   fs.exists(dlDir, function(exists){

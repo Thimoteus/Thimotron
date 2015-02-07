@@ -1,10 +1,10 @@
 (function(){
-  var request, ref$, repeat, checkIfElementInDb, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, Inbox, settings, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, transformStrings, bulletify, smallify, numberify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
+  var request, ref$, settings, repeat, checkIfElementInDb, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, Inbox, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, transformStrings, bulletify, smallify, numberify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   request = require('request');
-  ref$ = require('./core'), repeat = ref$.repeat, checkIfElementInDb = ref$.checkIfElementInDb, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
+  ref$ = require('./core'), settings = ref$.settings, repeat = ref$.repeat, checkIfElementInDb = ref$.checkIfElementInDb, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
   Inbox = require('./mail');
-  settings = require('../../settings').modules.bailiff;
+  settings = settings.modules.bailiff;
   subreddit = settings.subreddit;
   username = robot.options.login.username;
   inbox = new Inbox;

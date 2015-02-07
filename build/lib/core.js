@@ -1,9 +1,12 @@
 (function(){
-  var Jaraw, mongo, settings, dbName, dbCollections, db, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeat, recurseThroughRe, JSONparse, simplifyListing, commitArrayToDb, checkIfElementInDb, replyTo, sendPm, slice$ = [].slice;
+  var Jaraw, mongo, path, argv, settingsPath, settings, dbName, dbCollections, db, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeat, recurseThroughRe, JSONparse, simplifyListing, commitArrayToDb, checkIfElementInDb, replyTo, sendPm, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
   mongo = require('mongojs');
-  settings = require('../../settings');
+  path = require('path');
+  argv = require('minimist')(process.argv);
+  settingsPath = argv.settings ? path.resolve(argv.settings) : '../../settings';
+  settings = require(settingsPath);
   dbName = settings.db.name || 'bot';
   dbCollections = ['mentions', 'receivedPms', 'acknowledgedPms', 'bailiffCases', 'bailiffEvidence'];
   db = mongo(dbName, dbCollections);
@@ -155,6 +158,7 @@
   };
   module.exports = {
     login: login,
+    settings: settings,
     recipient: recipient,
     sendPm: sendPm,
     replyTo: replyTo,

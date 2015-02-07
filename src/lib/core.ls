@@ -1,8 +1,14 @@
 global <<< require 'prelude-ls'
 Jaraw = require 'jaraw'
 mongo = require 'mongojs'
+path = require 'path'
+argv = require('minimist')(process.argv)
 
-const settings = require '../../settings'
+const settings-path = if argv.settings
+   path.resolve __dirname, '../../', argv.settings
+else
+   path.resolve __dirname, '../../settings.json'
+const settings = require settings-path
 const db-name = settings.db.name or 'bot'
 const db-collections = <[ mentions receivedPms acknowledgedPms bailiffCases bailiffEvidence ]>
 const db = mongo db-name, db-collections
@@ -36,7 +42,12 @@ login = (cb) ->
    say "#username is initializing"
    robot.login-as-script cb
 
-## takes a number `t` of milliseconds, `f` a function, `n` a string describing `f`, optional arguments and repeats `f` every `t`
+## takes:
+## number `t` of milliseconds;
+## function `f`;
+## string `n`, describes f;
+## optional `args`;
+## result: repeats `f(args)` every `t` ms
 repeat = (t, f, n, ...args) ->
    fn = ->
       set-timeout fn, t
@@ -116,6 +127,7 @@ send-pm = (title, body, receiver) ->
 ## where the magic happens
 module.exports =
    login: login
+   settings: settings
    recipient: recipient
    send-pm: send-pm
    reply-to: reply-to

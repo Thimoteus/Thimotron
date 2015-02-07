@@ -1,6 +1,6 @@
 global <<< require 'prelude-ls'
-{recipient, say, robot, repeat, simplify-listing, send-pm, commit-array-to-db} = require './core'
-settings = require '../../settings' .modules.search
+{settings, recipient, say, robot, repeat, simplify-listing, send-pm, commit-array-to-db} = require './core'
+settings = settings.modules.search
 subs = settings.subreddits
 cycle-time = settings.cycle_time or 60_000ms
 username = robot.options.login.username
