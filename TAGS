@@ -1,88 +1,0 @@
-
-src/index.ls,0
-
-src/lib/strings.ls,118
-module.exports =module.exports24,678
-   bulletify: bulletifybulletify25,695
-   smallify: smallifysmallify26,719
-
-src/lib/library.ls,74
-module.exports =module.exports10,232
-   bailiff: bailiffbailiff15,373
-
-src/lib/bailiff.ls,760
-Inbox = require './mail'Inbox6,287
-roles =roles22,718
-   case-link = "http://redd.it/#id"case-link66,2594
-   charges = bulletify chargescharges68,2656
-   msg = """msg75,2988
-   msg = """msg104,3805
-   valid-confirmations =valid-confirmations144,4907
-   valid-summons =valid-summons189,6518
-      charges = bulletify chargescharges221,7669
-      msg = """msg223,7743
-   selftext = post.selftextselftext247,8284
-   archived-evidence = []archived-evidence253,8440
-      params =params257,8538
-         url: 'https://archive.today/submit/'url258,8553
-         form:form259,8599
-            url: urlurl260,8614
-   my = spoiler "I'll be" "IAMA BOT, AMA"my274,9290
-   msg = """msg280,9625
-module.exports =module.exports309,10533
-
-src/lib/mail.ls,0
-
-src/lib/core.ls,586
-Jaraw = require 'jaraw'Jaraw2,32
-path = require 'path'path4,82
-   login:login34,1015
-      password: passwordpassword36,1050
-   oauth:oauth37,1075
-      secret: secretsecret39,1105
-   flag = 'g'flag66,1757
-   ret = []ret70,1870
-      b = JSON.parse itb78,2030
-   arr = []arr92,2531
-   params =params118,3370
-      text: texttext120,3403
-   params =params130,3872
-      subject: titlesubject132,3907
-      text: bodytext133,3928
-      to: receiverto134,3945
-module.exports =module.exports141,4267
-   say: saysay151,4534
-   robot: robotrobot152,4546
-
-src/lib/search.ls,189
-   after = opts.after or falseafter18,591
-   limit = opts.limit or 100limit19,622
-   params = limit: limitparams27,974
-   msg = ''msg65,2420
-module.exports =module.exports81,3537
-
-src/lib/postman.ls,694
-filter-summons = filter (.subject is 'New multimessage')filter-summons42,1131
-read-recipients =read-recipients48,1346
-  body = pm.bodybody83,2345
-  msg = """msg103,3027
-  letter =letter113,3093
-    subject: subjectsubject115,3131
-    message: msgmessage116,3152
-  ind = pair.1.bodyind146,4394
-  recipients = pair.1.bodyrecipients152,4525
-  subject = pair.0.subjectsubject166,4936
-  message = pair.0.bodymessage168,4964
-  body = """body170,4989
-  Subject: #subjectSubject173,5021
-  Message: #messageMessage175,5042
-  fake-pm =fake-pm178,5069
-    body: bodybody179,5081
-    first-messages = repliesfirst-messages199,5577
-module.exports =module.exports213,6055
-
-src/lib/image-scraper.ls,153
-   params =params21,638
-      after: afterafter22,650
-      after = JSON.parse bod .data.afterafter41,1273
-module.exports =module.exports62,2013
