@@ -45,8 +45,18 @@
                 </a>
               
                 
+                <a class="source" href="postman.html">
+                  postman.ls
+                </a>
+              
+                
                 <a class="source" href="search.html">
                   search.ls
+                </a>
+              
+                
+                <a class="source" href="strings.html">
+                  strings.ls
                 </a>
               
             </div>
@@ -77,25 +87,54 @@
 <span class="hljs-built_in">require</span>! <span class="hljs-string">'fs'</span>
 <span class="hljs-built_in">require</span>! <span class="hljs-string">'path'</span>
 <span class="hljs-built_in">require</span>! <span class="hljs-string">'request'</span>
-{say, simplify-listing, robot} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
-settings = <span class="hljs-built_in">require</span> <span class="hljs-string">'../../settings'</span> .modules&lt;[ image-scraper ]&gt;
+{say, settings, simplify-listing, robot} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
+settings = settings.modules&lt;[ image-scraper ]&gt;
 subs = settings.subreddits
 dl-dir = settings.download_directory <span class="hljs-keyword">or</span> <span class="hljs-string">'./'</span>
 fs.exists dl-dir, <span class="hljs-function"><span class="hljs-params">(exists)</span> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> exists =&gt; <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"bad download directory"</span>
 image-limit = settings.image_limit <span class="hljs-keyword">or</span> <span class="hljs-number">50</span>
 
 domain = settings.domain <span class="hljs-keyword">or</span> <span class="hljs-string">'imgur.com'</span>
-re = <span class="hljs-keyword">new</span> RegExp domain
+re = <span class="hljs-keyword">new</span> RegExp domain</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h2 id="get-image-links">get image links</h2>
 
-<span class="hljs-function"><span class="hljs-title">get-image-links</span> = <span class="hljs-params">(opts, cb = id)</span> -&gt;</span>
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">get-image-links</span> = <span class="hljs-params">(opts, cb = id)</span> -&gt;</span>
+   <span class="hljs-comment"># parse options</span>
    <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span>! opts <span class="hljs-keyword">is</span> <span class="hljs-string">'Function'</span> =&gt; [opts, cb] = [{}, opts]
    after = opts.after <span class="hljs-keyword">or</span> <span class="hljs-literal">null</span>
    params =
       <span class="hljs-attribute">after</span>: after
       <span class="hljs-attribute">limit</span>: image-limit
 
+   <span class="hljs-comment"># we only want domains we know how to handle</span>
    <span class="hljs-function"><span class="hljs-title">good-domain</span> = -&gt;</span> re.test <span class="hljs-literal">it</span>.domain
+   <span class="hljs-comment"># we can't handle albums yet, so we have to test for them</span>
    <span class="hljs-function"><span class="hljs-title">an-album</span> = -&gt;</span> <span class="hljs-pi">/\/a\//</span>.test <span class="hljs-literal">it</span>.url
+   <span class="hljs-comment"># would rather download securely</span>
    <span class="hljs-function"><span class="hljs-title">securify</span> = <span class="hljs-params">(url)</span> -&gt;</span>
       <span class="hljs-keyword">if</span> <span class="hljs-pi">/http:/</span>.test url
          <span class="hljs-keyword">return</span> url.replace <span class="hljs-pi">/http:/</span>, <span class="hljs-string">'https:'</span>
@@ -104,11 +143,25 @@ re = <span class="hljs-keyword">new</span> RegExp domain
    <span class="hljs-keyword">for</span> <span class="hljs-keyword">let</span> sub <span class="hljs-keyword">in</span> subs
 
       (err, res, bod) &lt;- robot.get <span class="hljs-string">"/r/<span class="hljs-subst">#{sub}</span>/new.json"</span>, params
-      <span class="hljs-keyword">if</span> err <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> res =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong, get-image-links"</span>
-      <span class="hljs-keyword">if</span> res.status-code <span class="hljs-keyword">isnt</span> <span class="hljs-number">200</span> =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong: <span class="hljs-subst">#{res.status-code}</span>, get-image-links"</span>
+      <span class="hljs-keyword">if</span> err <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> res =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Error: get-image-links"</span>
+      <span class="hljs-keyword">if</span> res.status-code <span class="hljs-keyword">isnt</span> <span class="hljs-number">200</span> =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Error: <span class="hljs-subst">#{res.status-code}</span>, get-image-links"</span>
 
-      after = JSON.parse bod .data.after
-      urls = bod |&gt; simplify-listing |&gt; filter good-domain |&gt; filter (<span class="hljs-keyword">not</span>) &lt;&lt; an-album |&gt; map (.url) |&gt; map securify
+      after = JSON.parse bod .data.after</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>turns the reddit response into an array of picture urls</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      urls = bod |&gt; simplify-listing |&gt; filter good-domain |&gt; filter (<span class="hljs-keyword">not</span>) &lt;&lt; an-album |&gt; map (.url) |&gt; map securify
 
       cb urls, after
 

@@ -1,7 +1,7 @@
 (function(){
-  var ref$, settings, recipient, say, robot, repeat, simplifyListing, sendPm, commitArrayToDb, subs, cycleTime, username, flag, rxs, res$, i$, len$, term, search, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatTitleSearch, slice$ = [].slice;
+  var ref$, settings, recipient, say, robot, repeatFn, simplifyListing, sendPm, commitArrayToDb, subs, cycleTime, username, flag, rxs, res$, i$, len$, term, search, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatTitleSearch, slice$ = [].slice;
   import$(global, require('prelude-ls'));
-  ref$ = require('./core'), settings = ref$.settings, recipient = ref$.recipient, say = ref$.say, robot = ref$.robot, repeat = ref$.repeat, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, commitArrayToDb = ref$.commitArrayToDb;
+  ref$ = require('./core'), settings = ref$.settings, recipient = ref$.recipient, say = ref$.say, robot = ref$.robot, repeatFn = ref$.repeatFn, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, commitArrayToDb = ref$.commitArrayToDb;
   settings = settings.modules.search;
   subs = settings.subreddits;
   cycleTime = settings.cycle_time || 60000;
@@ -119,17 +119,17 @@
     return sendPm("Someone mentioned " + keyword, msg, recipient);
   };
   repeatSelfTextsSearch = function(){
-    return repeat(cycleTime, searchSelfTexts, 'self-texts-search', function(posts){
+    return repeatFn(cycleTime, searchSelfTexts, 'self-texts-search', function(posts){
       return commitArrayToDb(posts, 'mentions', pmUpdates);
     });
   };
   repeatCommentsSearch = function(){
-    return repeat(cycleTime, searchComments, 'comments-search', function(comments){
+    return repeatFn(cycleTime, searchComments, 'comments-search', function(comments){
       return commitArrayToDb(comments, 'mentions', pmUpdates);
     });
   };
   repeatTitleSearch = function(){
-    return repeat(cycleTime, searchTitles, 'titles-search', function(titles){
+    return repeatFn(cycleTime, searchTitles, 'titles-search', function(titles){
       return commitArrayToDb(titles, 'mentions', pmUpdates);
     });
   };

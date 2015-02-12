@@ -1,10 +1,11 @@
 ## MODULES
 ## -------
 
-{login, repeat} = require './core'
+{login} = require './core'
 {bailiff} = require './bailiff'
 {image-scraper} = require './image-scraper'
 {comments-search, self-texts-search, titles-search} = require './search'
+{postman} = require './postman'
 
 module.exports =
    comments-search: comments-search
@@ -13,3 +14,4 @@ module.exports =
    login: login
    bailiff: bailiff
    image-scraper: image-scraper
+   postman: postman

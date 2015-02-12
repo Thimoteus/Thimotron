@@ -10,7 +10,13 @@ else
    path.resolve __dirname, '../../settings.json'
 const settings = require settings-path
 const db-name = settings.db.name or 'bot'
-const db-collections = <[ mentions receivedPms acknowledgedPms bailiffCases bailiffEvidence ]>
+const db-collections =
+   * \mentions
+   * \receivedPms
+   * \acknowledgedPms
+   * \bailiffCases
+   * \bailiffEvidence
+   * \postman
 const db = mongo db-name, db-collections
 
 const user-agent = "#{settings.info.name}@#{settings.info.version or '1.0.0'} by #{settings.info.author or ''}"
@@ -48,7 +54,7 @@ login = (cb) ->
 ## string `n`, describes f;
 ## optional `args`;
 ## result: repeats `f(args)` every `t` ms
-repeat = (t, f, n, ...args) ->
+repeat-fn = (t, f, n, ...args) ->
    fn = ->
       set-timeout fn, t
       say "Beginning new loop for #n"
@@ -82,9 +88,9 @@ simplify-listing = JSONparse >> (.data.children) >> map (.data)
 
 ## takes an array and inserts each element into `db-collection`, unless that element is already in (based on a .name attribute)
 ## useful for putting listings (by using simplify-listing) into a db
-commit-array-to-db = (array, collection, cb = id) ->
+commit-array-to-db = (array, collection, cb = id) -->
    arr = []
-   if array.length > 0 => for let element, i in array
+   if array.length => for let element, i in array
       (exists) <- check-if-element-in-db element, collection
       if exists => return
 
@@ -92,16 +98,23 @@ commit-array-to-db = (array, collection, cb = id) ->
       say "inserted #{element.name} to database #collection"
       arr.push element
       if i == array.length - 1 => return cb arr
-   return cb arr
+   else
+      cb arr
 
 ## returns true if `el` is in `collection` of the database, otherwise false
-check-if-element-in-db = (el, collection, cb = id) ->
+check-if-element-in-db = (el, collection, cb = id) -->
    db[collection].find name: el.name .limit 1 .count (err, count) ->
+      if err => cb err
       ret = count != 0
       cb ret
 
+## gets an element from the database
+get-element-from-db = (el, collection, cb = id) -->
+   db[collection].findOne name: el.name , (err, doc) ->
+      cb err, doc
+
 ## sends a reply to `dest` with message `text`
-reply-to = (dest, text) ->
+reply-to = (dest, text) -->
    params =
       thing_id: dest
       text: text
@@ -112,7 +125,7 @@ reply-to = (dest, text) ->
       return say "Reply sent:\nDest: #dest\nText: #text"
 
 ## sends a pm with subject `title` to `receiver` with message `body`
-send-pm = (title, body, receiver) ->
+send-pm = (title, body, receiver) -->
    if /\/u\//.test receiver => receiver = unchars receiver[3 to]
    params =
       api_type: 'json'
@@ -134,7 +147,8 @@ module.exports =
    commit-array-to-db: commit-array-to-db
    recurse-through-re: recurse-through-re
    simplify-listing: simplify-listing
-   repeat: repeat
+   repeat-fn: repeat-fn
    say: say
    robot: robot
    check-if-element-in-db: check-if-element-in-db
+   get-element-from-db: get-element-from-db

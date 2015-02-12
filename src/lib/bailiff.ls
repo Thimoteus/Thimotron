@@ -1,7 +1,8 @@
 ## requirements
 global <<< require 'prelude-ls'
 require! 'request'
-{settings, repeat, check-if-element-in-db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
+{settings, repeat-fn, check-if-element-in-db, recipient, robot, say, simplify-listing, send-pm, reply-to, commit-array-to-db, recurse-through-re} = require './core'
+{smallify, bulletify, numberify} = require './strings'
 Inbox = require './mail'
 settings = settings.modules.bailiff
 subreddit = settings.subreddit
@@ -56,21 +57,6 @@ get-defendants-from-confirmation = (pm) ->
 get-charges-from-confirmation = (pm) ->
    charges = recurse-through-re //^\*\s([^/u/].+)$//m, pm
    return charges
-
-## useful for taking an array and turning it into a string somehow,
-## especially when the first element needs to be different from the rest
-transform-strings = (initial, joiner, arr) -->
-   the-head = initial + head arr
-   the-tail = join joiner, [''] ++ tail arr
-   return the-head + the-tail
-
-bulletify = transform-strings '* ' '\n* '
-
-smallify = transform-strings '^^^^^^^' ' ^^^^^^^'
-
-numberify = (strings) ->
-   return for str, i in strings
-      "[#{i + 1}](#str)"
 
 ## SUMMONER
 ## --------
@@ -275,7 +261,6 @@ submit-evidence-to-archive = (post, cb = id) ->
       request.post params, (err, res, bod) ->
          if err or not res => return say "Something went wrong, submit-evidence-to-archive"
          if res.status-code isnt 200 => return say "Something went wrong: #{res.status-code}, submit-evidence-to-archive"
-
          archived-evidence.push get-redirect-link-from bod
          ## we don't finish until the last evidence has been archived
          if archived-evidence `same-length` evidence => cb archived-evidence
@@ -288,9 +273,9 @@ get-evidence-from = (selftext) ->
 report-evidence-to-court = (archive, post) ->
    my = spoiler "I'll be" "IAMA BOT, AMA"
    role = get-random-element-from roles
-   declare = smallify <[ The following is an archive of the evidence: ]>
-   rendered-evidence = archive |> numberify |> smallify
-   signature = smallify [ \This \bot \by "/u/#recipient." \Code \viewable \at "github.com/#recipient/#username" ]
+   declare = smallify(5) <[ The following is an archive of the evidence: ]>
+   rendered-evidence = archive |> numberify |> smallify(5)
+   signature = smallify(5) [ \This \bot \by "/u/#recipient." \Code \viewable \at "github.com/#recipient/#username" ]
 
    msg = """
    #my #role
@@ -298,8 +283,11 @@ report-evidence-to-court = (archive, post) ->
    #declare #rendered-evidence #signature
    """
 
-   reply-to post.name, msg
-   commit-array-to-db [post], 'bailiffEvidence'
+   ## Originally did these two asynchronously, but for some reason it seems
+   ## to not update the db sometimes. This makes sure the bot doesn't spam
+   ## reddit in case it can't commit to the db.
+   #reply-to post.name, msg
+   commit-array-to-db [post], 'bailiffEvidence', -> reply-to post.name, msg
 
 process-cases = ->
    (err, res, bod) <- robot.get "/r/#{subreddit}/new.json", limit: 2
@@ -319,4 +307,4 @@ bailiff = ->
    process-cases()
 
 module.exports =
-   bailiff: -> repeat settings.cycle_time, bailiff, \bailiff
+   bailiff: -> repeat-fn settings.cycle_time, bailiff, \bailiff

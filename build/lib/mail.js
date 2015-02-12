@@ -1,46 +1,44 @@
 (function(){
-  var capitalize, ref$, robot, simplifyListing, folders, listify, getFolder, Inbox;
-  capitalize = require('prelude-ls').capitalize;
+  var ref$, robot, simplifyListing, id, listify, Inbox, this$ = this;
   ref$ = require('./core'), robot = ref$.robot, simplifyListing = ref$.simplifyListing;
-  folders = ['unread', 'inbox', 'mentions', 'replies', 'selfreply', 'messages', 'sent', 'moderator'];
+  id = function(x){
+    return x;
+  };
   listify = curry$(function(cb, err, res, bod){
     if (res && res.statusCode === 200) {
       bod = simplifyListing(bod);
     }
     return cb(err, res, bod);
   });
-  getFolder = curry$(function(folder, limit, cb){
-    return robot.get("/message/" + folder + ".json", {
-      limit: limit
-    }, listify(cb));
-  });
-  Inbox = (function(){
-    Inbox.displayName = 'Inbox';
-    var prototype = Inbox.prototype, constructor = Inbox;
-    function Inbox(limit){
-      var this$ = this instanceof ctor$ ? this : new ctor$;
-      this$.limit = limit != null ? limit : 5;
-      folders;
-      return this$;
-    } function ctor$(){} ctor$.prototype = prototype;
-    prototype.getUnread = getFolder('unread', Inbox.limit);
-    prototype.getInbox = getFolder('inbox', Inbox.limit);
-    prototype.getMentions = getFolder('mentions', Inbox.limit);
-    prototype.getCommentReplies = getFolder('comments', Inbox.limit);
-    prototype.getPostReplies = getFolder('selfreply', Inbox.limit);
-    prototype.getMessages = getFolder('messages', Inbox.limit);
-    prototype.getSent = getFolder('sent', Inbox.limit);
-    prototype.getModerator = getFolder('moderator', Inbox.limit);
-    prototype.read = function(pm, cb){
-      return robot.post('/api/read_message', {
-        id: pm.name
-      }, cb);
+  Inbox = function(limit){
+    var getFolder;
+    this$.limit = limit;
+    getFolder = curry$((function(folder, cb){
+      return robot.get("/message/" + folder + ".json", {
+        limit: this$.limit
+      }, listify(cb));
+    }), true);
+    return {
+      getUnread: getFolder('unread'),
+      getInbox: getFolder('inbox'),
+      getMentions: getFolder('mentions'),
+      getCommentReplies: getFolder('comments'),
+      getPostReplies: getFolder('selfreply'),
+      getMessages: getFolder('messages'),
+      getSent: getFolder('sent'),
+      getModerator: getFolder('moderator'),
+      read: function(pm, cb){
+        cb == null && (cb = id);
+        return robot.post('/api/read_message', {
+          id: pm.name
+        }, cb);
+      },
+      readAll: function(cb){
+        cb == null && (cb = id);
+        return robot.post('/api/read_all_messages', cb);
+      }
     };
-    prototype.readAll = function(cb){
-      return robot.post('/api/read_all_messages', cb);
-    };
-    return Inbox;
-  }());
+  };
   module.exports = Inbox;
   function curry$(f, bound){
     var context,

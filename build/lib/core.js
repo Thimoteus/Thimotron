@@ -1,14 +1,16 @@
 (function(){
-  var Jaraw, mongo, path, argv, settingsPath, settings, dbName, dbCollections, db, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeat, recurseThroughRe, JSONparse, simplifyListing, commitArrayToDb, checkIfElementInDb, replyTo, sendPm, slice$ = [].slice;
+  var Jaraw, mongo, path, argv, settingsPath, settings, dbName, dbCollections, db, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, recurseThroughRe, JSONparse, simplifyListing, commitArrayToDb, checkIfElementInDb, getElementFromDb, replyTo, sendPm, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
   mongo = require('mongojs');
   path = require('path');
   argv = require('minimist')(process.argv);
-  settingsPath = argv.settings ? path.resolve(argv.settings) : '../../settings';
+  settingsPath = argv.settings
+    ? path.resolve(__dirname, '../../', argv.settings)
+    : path.resolve(__dirname, '../../settings.json');
   settings = require(settingsPath);
   dbName = settings.db.name || 'bot';
-  dbCollections = ['mentions', 'receivedPms', 'acknowledgedPms', 'bailiffCases', 'bailiffEvidence'];
+  dbCollections = ['mentions', 'receivedPms', 'acknowledgedPms', 'bailiffCases', 'bailiffEvidence', 'postman'];
   db = mongo(dbName, dbCollections);
   userAgent = settings.info.name + "@" + (settings.info.version || '1.0.0') + " by " + (settings.info.author || '');
   username = settings.login.username;
@@ -39,7 +41,7 @@
     say(username + " is initializing");
     return robot.loginAsScript(cb);
   };
-  repeat = function(t, f, n){
+  repeatFn = function(t, f, n){
     var args, fn;
     args = slice$.call(arguments, 3);
     fn = function(){
@@ -84,18 +86,20 @@
   }, map(function(it){
     return it.data;
   }));
-  commitArrayToDb = function(array, collection, cb){
-    var arr, i$, len$;
+  commitArrayToDb = curry$(function(array, collection, cb){
+    var arr, i$, len$, results$ = [];
     cb == null && (cb = id);
     arr = [];
-    if (array.length > 0) {
+    if (array.length) {
       for (i$ = 0, len$ = array.length; i$ < len$; ++i$) {
-        (fn$.call(this, i$, array[i$]));
+        results$.push((fn$.call(this, i$, array[i$])));
       }
+      return results$;
+    } else {
+      return cb(arr);
     }
-    return cb(arr);
     function fn$(i, element){
-      checkIfElementInDb(element, collection, function(exists){
+      return checkIfElementInDb(element, collection, function(exists){
         if (exists) {
           return;
         }
@@ -107,18 +111,29 @@
         }
       });
     }
-  };
-  checkIfElementInDb = function(el, collection, cb){
+  });
+  checkIfElementInDb = curry$(function(el, collection, cb){
     cb == null && (cb = id);
     return db[collection].find({
       name: el.name
     }).limit(1).count(function(err, count){
       var ret;
+      if (err) {
+        cb(err);
+      }
       ret = count !== 0;
       return cb(ret);
     });
-  };
-  replyTo = function(dest, text){
+  });
+  getElementFromDb = curry$(function(el, collection, cb){
+    cb == null && (cb = id);
+    return db[collection].findOne({
+      name: el.name
+    }, function(err, doc){
+      return cb(err, doc);
+    });
+  });
+  replyTo = curry$(function(dest, text){
     var params;
     params = {
       thing_id: dest,
@@ -134,8 +149,8 @@
       }
       return say("Reply sent:\nDest: " + dest + "\nText: " + text);
     });
-  };
-  sendPm = function(title, body, receiver){
+  });
+  sendPm = curry$(function(title, body, receiver){
     var params;
     if (/\/u\//.test(receiver)) {
       receiver = unchars(slice$.call(receiver, 3));
@@ -155,7 +170,7 @@
       }
       return say("PM sent:\nRecipient: " + receiver + "\nTitle: " + title + "\nBody: " + body);
     });
-  };
+  });
   module.exports = {
     login: login,
     settings: settings,
@@ -165,10 +180,11 @@
     commitArrayToDb: commitArrayToDb,
     recurseThroughRe: recurseThroughRe,
     simplifyListing: simplifyListing,
-    repeat: repeat,
+    repeatFn: repeatFn,
     say: say,
     robot: robot,
-    checkIfElementInDb: checkIfElementInDb
+    checkIfElementInDb: checkIfElementInDb,
+    getElementFromDb: getElementFromDb
   };
   function import$(obj, src){
     var own = {}.hasOwnProperty;

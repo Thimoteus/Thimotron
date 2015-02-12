@@ -45,8 +45,18 @@
                 </a>
               
                 
+                <a class="source" href="postman.html">
+                  postman.ls
+                </a>
+              
+                
                 <a class="source" href="search.html">
                   search.ls
+                </a>
+              
+                
+                <a class="source" href="strings.html">
+                  strings.ls
                 </a>
               
             </div>
@@ -76,9 +86,10 @@
             
             <div class="content"><div class='highlight'><pre><span class="hljs-built_in">global</span> &lt;&lt;&lt; <span class="hljs-built_in">require</span> <span class="hljs-string">'prelude-ls'</span>
 <span class="hljs-built_in">require</span>! <span class="hljs-string">'request'</span>
-{repeat, check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-db, recipient, robot, say, simplify-listing, send-pm, reply-<span class="hljs-keyword">to</span>, commit-array-<span class="hljs-keyword">to</span>-db, recurse-through-re} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
+{settings, repeat-fn, check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-db, recipient, robot, say, simplify-listing, send-pm, reply-<span class="hljs-keyword">to</span>, commit-array-<span class="hljs-keyword">to</span>-db, recurse-through-re} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
+{smallify, bulletify, numberify} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./strings'</span>
 Inbox = <span class="hljs-built_in">require</span> <span class="hljs-string">'./mail'</span>
-settings = <span class="hljs-built_in">require</span> <span class="hljs-string">'../../settings'</span> .modules.bailiff
+settings = settings.modules.bailiff
 subreddit = settings.subreddit
 username = robot.options.login.username
 inbox = <span class="hljs-keyword">new</span> Inbox</pre></div></div>
@@ -165,23 +176,9 @@ inbox = <span class="hljs-keyword">new</span> Inbox</pre></div></div>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>useful for taking an array and turning it into a string somehow,
-especially when the first element needs to be different from the rest</p>
+              <h2 id="summoner">SUMMONER</h2>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">transform-strings</span> = <span class="hljs-params">(initial, joiner, arr)</span> --&gt;</span>
-   the-head = initial + head arr
-   the-tail = join joiner, [<span class="hljs-string">''</span>] ++ tail arr
-   <span class="hljs-keyword">return</span> the-head + the-tail
-
-bulletify = transform-strings <span class="hljs-string">'* '</span> <span class="hljs-string">'\n* '</span>
-
-smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span class="hljs-string">' ^^^^^^^'</span>
-
-<span class="hljs-function"><span class="hljs-title">numberify</span> = <span class="hljs-params">(strings)</span> -&gt;</span>
-   <span class="hljs-keyword">return</span> <span class="hljs-keyword">for</span> str, i <span class="hljs-keyword">in</span> strings
-      <span class="hljs-string">"[<span class="hljs-subst">#{i + <span class="hljs-number">1</span>}</span>](<span class="hljs-subst">#str</span>)"</span></pre></div></div>
             
         </li>
         
@@ -192,9 +189,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
-              <h2 id="summoner">SUMMONER</h2>
-
+              
             </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-function"><span class="hljs-title">summons-text</span> = <span class="hljs-params">(charges, id)</span> -&gt;</span></pre></div></div>
             
         </li>
         
@@ -205,11 +204,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
-              
+              <p>make a nice link from the id</p>
+
             </div>
             
-            <div class="content"><div class='highlight'><pre>
-<span class="hljs-function"><span class="hljs-title">summons-text</span> = <span class="hljs-params">(charges, id)</span> -&gt;</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>   <span class="hljs-keyword">case</span>-link = <span class="hljs-string">"http://redd.it/<span class="hljs-subst">#id</span>"</span></pre></div></div>
             
         </li>
         
@@ -220,11 +219,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
-              <p>make a nice link from the id</p>
+              <p>charges is an array</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>   <span class="hljs-keyword">case</span>-link = <span class="hljs-string">"http://redd.it/<span class="hljs-subst">#id</span>"</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>   charges = bulletify charges</pre></div></div>
             
         </li>
         
@@ -235,11 +234,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
-              <p>charges is an array</p>
+              <p>Article IV of the constitution</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>   charges = bulletify charges</pre></div></div>
+            <div class="content"><div class='highlight'><pre>   satirical = <span class="hljs-string">'https://www.reddit.com/r/KarmaCourt/wiki/constitution#wiki_article_iv._karmacourt_is_funny_satire'</span></pre></div></div>
             
         </li>
         
@@ -250,21 +249,6 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
-              <p>Article IV of the constitution</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>   satirical = <span class="hljs-string">'https://www.reddit.com/r/KarmaCourt/wiki/constitution#wiki_article_iv._karmacourt_is_funny_satire'</span></pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-10">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-10">&#182;</a>
-              </div>
               <p>Bill of rights</p>
 
             </div>
@@ -274,11 +258,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-11">
+        <li id="section-10">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-11">&#182;</a>
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <p>the summons text</p>
 
@@ -312,11 +296,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-12">
+        <li id="section-11">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-12">&#182;</a>
+                <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
               <p>defendants is an array</p>
 
@@ -327,11 +311,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-13">
+        <li id="section-12">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-13">&#182;</a>
+                <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
               <p>the actual summons text, charges is also an array</p>
 
@@ -362,11 +346,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-14">
+        <li id="section-13">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
+                <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
               <p>mentions should only be used for summons</p>
 
@@ -379,11 +363,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-15">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <p>if we’re summoned, let’s check the facts of the case</p>
 
@@ -394,11 +378,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-16">
+        <li id="section-15">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <p>comment replies are only for checking if the bot got the defendants/charges right</p>
 
@@ -411,11 +395,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-17">
+        <li id="section-16">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
               <p>someone responded to one of our comments, let’s see if it confirmed the info we got</p>
 
@@ -428,11 +412,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-18">
+        <li id="section-17">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+                <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
               <p>mustn’t be summoned by random people</p>
 
@@ -456,11 +440,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-19">
+        <li id="section-18">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
               <p>now we get the requisite information from our original post</p>
 
@@ -474,11 +458,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-20">
+        <li id="section-19">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
               <p>we take the original post asking for confirmation</p>
 
@@ -489,11 +473,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-21">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p>and extract the defendants and charges</p>
 
@@ -505,11 +489,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-22">
+        <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <p>summon the defendants</p>
 
@@ -520,11 +504,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-23">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>inform the court of the summons</p>
 
@@ -537,11 +521,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-24">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <p>we’ve read this</p>
 
@@ -552,11 +536,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-25">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p>can’t be summoned by random people, now can we?</p>
 
@@ -570,11 +554,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-26">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p>maybe one day we can replace this with clever unread inbox calls</p>
 
@@ -585,11 +569,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-27">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <p>here, summons refers to summoning the bot, not the defendants</p>
 
@@ -607,11 +591,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-28">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>return if the summons text didn’t match the acceptable summoning phrases</p>
 
@@ -623,11 +607,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-29">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-29">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <p>unfortunately this is the only way to get a post id out of the inbox</p>
 
@@ -638,11 +622,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-30">
+        <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-30">&#182;</a>
+                <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
               <p>now we make a request to get the case</p>
 
@@ -657,11 +641,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-31">
+        <li id="section-30">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-31">&#182;</a>
+                <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
               <p>check if the case is already in our db</p>
 
@@ -692,11 +676,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-32">
+        <li id="section-31">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-32">&#182;</a>
+                <a class="pilcrow" href="#section-31">&#182;</a>
               </div>
               <p>don’t let pm.name fool you, we’re actually responding to the comment where we’re called</p>
 
@@ -708,11 +692,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-33">
+        <li id="section-32">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-33">&#182;</a>
+                <a class="pilcrow" href="#section-32">&#182;</a>
               </div>
               <h2 id="archivist">ARCHIVIST</h2>
 
@@ -721,11 +705,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-34">
+        <li id="section-33">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-34">&#182;</a>
+                <a class="pilcrow" href="#section-33">&#182;</a>
               </div>
               
             </div>
@@ -736,11 +720,11 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
         </li>
         
         
-        <li id="section-35">
+        <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-35">&#182;</a>
+                <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <p>get the link of the archived evidence</p>
 
@@ -765,17 +749,16 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
       request.post params, <span class="hljs-function"><span class="hljs-params">(err, res, bod)</span> -&gt;</span>
          <span class="hljs-keyword">if</span> err <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span> res =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong, submit-evidence-to-archive"</span>
          <span class="hljs-keyword">if</span> res.status-code <span class="hljs-keyword">isnt</span> <span class="hljs-number">200</span> =&gt; <span class="hljs-keyword">return</span> say <span class="hljs-string">"Something went wrong: <span class="hljs-subst">#{res.status-code}</span>, submit-evidence-to-archive"</span>
-
          archived-evidence.push get-redirect-link-<span class="hljs-keyword">from</span> bod</pre></div></div>
             
         </li>
         
         
-        <li id="section-36">
+        <li id="section-35">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-36">&#182;</a>
+                <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
               <p>we don’t finish until the last evidence has been archived</p>
 
@@ -791,18 +774,33 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
 <span class="hljs-function"><span class="hljs-title">report-evidence-to-court</span> = <span class="hljs-params">(archive, post)</span> -&gt;</span>
    my = spoiler <span class="hljs-string">"I'll be"</span> <span class="hljs-string">"IAMA BOT, AMA"</span>
    role = get-random-element-<span class="hljs-keyword">from</span> roles
-   declare = smallify &lt;[ The following <span class="hljs-keyword">is</span> an archive <span class="hljs-keyword">of</span> the <span class="hljs-attribute">evidence</span>: ]&gt;
-   rendered-evidence = archive |&gt; numberify |&gt; smallify
-   signature = smallify [ <span class="hljs-string">\This</span> <span class="hljs-string">\bot</span> <span class="hljs-string">\by</span> <span class="hljs-string">"/u/<span class="hljs-subst">#recipient</span>."</span> <span class="hljs-string">\Code</span> <span class="hljs-string">\viewable</span> <span class="hljs-string">\at</span> <span class="hljs-string">"github.com/<span class="hljs-subst">#recipient</span>/<span class="hljs-subst">#username</span>"</span> ]
+   declare = smallify(<span class="hljs-number">5</span>) &lt;[ The following <span class="hljs-keyword">is</span> an archive <span class="hljs-keyword">of</span> the <span class="hljs-attribute">evidence</span>: ]&gt;
+   rendered-evidence = archive |&gt; numberify |&gt; smallify(<span class="hljs-number">5</span>)
+   signature = smallify(<span class="hljs-number">5</span>) [ <span class="hljs-string">\This</span> <span class="hljs-string">\bot</span> <span class="hljs-string">\by</span> <span class="hljs-string">"/u/<span class="hljs-subst">#recipient</span>."</span> <span class="hljs-string">\Code</span> <span class="hljs-string">\viewable</span> <span class="hljs-string">\at</span> <span class="hljs-string">"github.com/<span class="hljs-subst">#recipient</span>/<span class="hljs-subst">#username</span>"</span> ]
 
    msg = <span class="hljs-string">"""
    <span class="hljs-subst">#my</span> <span class="hljs-subst">#role</span>
 
    <span class="hljs-subst">#declare</span> <span class="hljs-subst">#rendered-evidence</span> <span class="hljs-subst">#signature</span>
-   """</span>
+   """</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <p>Originally did these two asynchronously, but for some reason it seems
+to not update the db sometimes. This makes sure the bot doesn’t spam
+reddit in case it can’t commit to the db.</p>
 
-   reply-<span class="hljs-keyword">to</span> post.name, msg
-   commit-array-<span class="hljs-keyword">to</span>-db [post], <span class="hljs-string">'bailiffEvidence'</span>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>   <span class="hljs-comment">#reply-to post.name, msg</span>
+   commit-array-<span class="hljs-keyword">to</span>-db [post], <span class="hljs-string">'bailiffEvidence'</span>,<span class="hljs-function"> -&gt;</span> reply-<span class="hljs-keyword">to</span> post.name, msg
 
 <span class="hljs-function"><span class="hljs-title">process-cases</span> = -&gt;</span>
    (err, res, bod) &lt;- robot.get <span class="hljs-string">"/r/<span class="hljs-subst">#{subreddit}</span>/new.json"</span>, <span class="hljs-attribute">limit</span>: <span class="hljs-number">2</span>
@@ -845,7 +843,7 @@ smallify = transform-strings <span class="hljs-string">'^^^^^^^'</span> <span cl
    process-cases()
 
 <span class="hljs-built_in">module</span>.exports =
-   <span class="hljs-attribute">bailiff</span>:<span class="hljs-function"> -&gt;</span> repeat settings.cycle_time, bailiff, <span class="hljs-string">\bailiff</span></pre></div></div>
+   <span class="hljs-attribute">bailiff</span>:<span class="hljs-function"> -&gt;</span> repeat-fn settings.cycle_time, bailiff, <span class="hljs-string">\bailiff</span></pre></div></div>
             
         </li>
         

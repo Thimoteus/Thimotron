@@ -45,8 +45,18 @@
                 </a>
               
                 
+                <a class="source" href="postman.html">
+                  postman.ls
+                </a>
+              
+                
                 <a class="source" href="search.html">
                   search.ls
+                </a>
+              
+                
+                <a class="source" href="strings.html">
+                  strings.ls
                 </a>
               
             </div>
@@ -76,10 +86,22 @@
             <div class="content"><div class='highlight'><pre><span class="hljs-built_in">global</span> &lt;&lt;&lt; <span class="hljs-built_in">require</span> <span class="hljs-string">'prelude-ls'</span>
 Jaraw = <span class="hljs-built_in">require</span> <span class="hljs-string">'jaraw'</span>
 mongo = <span class="hljs-built_in">require</span> <span class="hljs-string">'mongojs'</span>
+path = <span class="hljs-built_in">require</span> <span class="hljs-string">'path'</span>
+argv = <span class="hljs-built_in">require</span>(<span class="hljs-string">'minimist'</span>)(process.argv)
 
-<span class="hljs-keyword">const</span> settings = <span class="hljs-built_in">require</span> <span class="hljs-string">'../../settings'</span>
+<span class="hljs-keyword">const</span> settings-path = <span class="hljs-keyword">if</span> argv.settings
+   path.resolve __dirname, <span class="hljs-string">'../../'</span>, argv.settings
+<span class="hljs-keyword">else</span>
+   path.resolve __dirname, <span class="hljs-string">'../../settings.json'</span>
+<span class="hljs-keyword">const</span> settings = <span class="hljs-built_in">require</span> settings-path
 <span class="hljs-keyword">const</span> db-name = settings.db.name <span class="hljs-keyword">or</span> <span class="hljs-string">'bot'</span>
-<span class="hljs-keyword">const</span> db-collections = &lt;[ mentions receivedPms acknowledgedPms bailiffCases bailiffEvidence ]&gt;
+<span class="hljs-keyword">const</span> db-collections =
+   * <span class="hljs-string">\mentions</span>
+   * <span class="hljs-string">\receivedPms</span>
+   * <span class="hljs-string">\acknowledgedPms</span>
+   * <span class="hljs-string">\bailiffCases</span>
+   * <span class="hljs-string">\bailiffEvidence</span>
+   * <span class="hljs-string">\postman</span>
 <span class="hljs-keyword">const</span> db = mongo db-name, db-collections
 
 <span class="hljs-keyword">const</span> user-agent = <span class="hljs-string">"<span class="hljs-subst">#{settings.info.name}</span>@<span class="hljs-subst">#{settings.info.version <span class="hljs-keyword">or</span> <span class="hljs-string">'1.0.0'</span>}</span> by <span class="hljs-subst">#{settings.info.author <span class="hljs-keyword">or</span> <span class="hljs-string">''</span>}</span>"</span>
@@ -156,11 +178,16 @@ with a minimum of hassle.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
-              <p>takes a number <code>t</code> of milliseconds, <code>f</code> a function, <code>n</code> a string describing <code>f</code>, optional arguments and repeats <code>f</code> every <code>t</code></p>
+              <p>takes:
+number <code>t</code> of milliseconds;
+function <code>f</code>;
+string <code>n</code>, describes f;
+optional <code>args</code>;
+result: repeats <code>f(args)</code> every <code>t</code> ms</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">repeat</span> = <span class="hljs-params">(t, f, n, ...args)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">repeat-fn</span> = <span class="hljs-params">(t, f, n, ...args)</span> -&gt;</span>
    <span class="hljs-function"><span class="hljs-title">fn</span> = -&gt;</span>
       set-timeout fn, t
       say <span class="hljs-string">"Beginning new loop for <span class="hljs-subst">#n</span>"</span>
@@ -242,9 +269,9 @@ useful for putting listings (by using simplify-listing) into a db</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">commit-array-to-db</span> = <span class="hljs-params">(array, collection, cb = id)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">commit-array-to-db</span> = <span class="hljs-params">(array, collection, cb = id)</span> --&gt;</span>
    arr = []
-   <span class="hljs-keyword">if</span> array.length &gt; <span class="hljs-number">0</span> =&gt; <span class="hljs-keyword">for</span> <span class="hljs-keyword">let</span> element, i <span class="hljs-keyword">in</span> array
+   <span class="hljs-keyword">if</span> array.length =&gt; <span class="hljs-keyword">for</span> <span class="hljs-keyword">let</span> element, i <span class="hljs-keyword">in</span> array
       (exists) &lt;- check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-db element, collection
       <span class="hljs-keyword">if</span> exists =&gt; <span class="hljs-keyword">return</span>
 
@@ -252,7 +279,8 @@ useful for putting listings (by using simplify-listing) into a db</p>
       say <span class="hljs-string">"inserted <span class="hljs-subst">#{element.name}</span> to database <span class="hljs-subst">#collection</span>"</span>
       arr.push element
       <span class="hljs-keyword">if</span> i == array.length - <span class="hljs-number">1</span> =&gt; <span class="hljs-keyword">return</span> cb arr
-   <span class="hljs-keyword">return</span> cb arr</pre></div></div>
+   <span class="hljs-keyword">else</span>
+      cb arr</pre></div></div>
             
         </li>
         
@@ -267,8 +295,9 @@ useful for putting listings (by using simplify-listing) into a db</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">check-if-element-in-db</span> = <span class="hljs-params">(el, collection, cb = id)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">check-if-element-in-db</span> = <span class="hljs-params">(el, collection, cb = id)</span> --&gt;</span>
    db[collection].find <span class="hljs-attribute">name</span>: el.name .limit <span class="hljs-number">1</span> .count <span class="hljs-function"><span class="hljs-params">(err, count)</span> -&gt;</span>
+      <span class="hljs-keyword">if</span> err =&gt; cb err
       ret = count != <span class="hljs-number">0</span>
       cb ret</pre></div></div>
             
@@ -281,11 +310,28 @@ useful for putting listings (by using simplify-listing) into a db</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
+              <p>gets an element from the database</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">get-element-from-db</span> = <span class="hljs-params">(el, collection, cb = id)</span> --&gt;</span>
+   db[collection].findOne <span class="hljs-attribute">name</span>: el.name , <span class="hljs-function"><span class="hljs-params">(err, doc)</span> -&gt;</span>
+      cb err, doc</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
               <p>sends a reply to <code>dest</code> with message <code>text</code></p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">reply-to</span> = <span class="hljs-params">(dest, text)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">reply-to</span> = <span class="hljs-params">(dest, text)</span> --&gt;</span>
    params =
       <span class="hljs-attribute">thing_id</span>: dest
       <span class="hljs-attribute">text</span>: text
@@ -298,17 +344,17 @@ useful for putting listings (by using simplify-listing) into a db</p>
         </li>
         
         
-        <li id="section-12">
+        <li id="section-13">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-12">&#182;</a>
+                <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
               <p>sends a pm with subject <code>title</code> to <code>receiver</code> with message <code>body</code></p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">send-pm</span> = <span class="hljs-params">(title, body, receiver)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">send-pm</span> = <span class="hljs-params">(title, body, receiver)</span> --&gt;</span>
    <span class="hljs-keyword">if</span> <span class="hljs-pi">/\/u\//</span>.test receiver =&gt; receiver = unchars receiver[<span class="hljs-number">3</span> <span class="hljs-keyword">to</span>]
    params =
       <span class="hljs-attribute">api_type</span>: <span class="hljs-string">'json'</span>
@@ -323,11 +369,11 @@ useful for putting listings (by using simplify-listing) into a db</p>
         </li>
         
         
-        <li id="section-13">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-13">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <p>where the magic happens</p>
 
@@ -335,16 +381,18 @@ useful for putting listings (by using simplify-listing) into a db</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports =
    <span class="hljs-attribute">login</span>: login
+   <span class="hljs-attribute">settings</span>: settings
    <span class="hljs-attribute">recipient</span>: recipient
    <span class="hljs-attribute">send-pm</span>: send-pm
    <span class="hljs-attribute">reply-to</span>: reply-<span class="hljs-keyword">to</span>
    <span class="hljs-attribute">commit-array-to-db</span>: commit-array-<span class="hljs-keyword">to</span>-db
    <span class="hljs-attribute">recurse-through-re</span>: recurse-through-re
    <span class="hljs-attribute">simplify-listing</span>: simplify-listing
-   <span class="hljs-attribute">repeat</span>: repeat
+   <span class="hljs-attribute">repeat-fn</span>: repeat-fn
    <span class="hljs-attribute">say</span>: say
    <span class="hljs-attribute">robot</span>: robot
-   <span class="hljs-attribute">check-if-element-in-db</span>: check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-db</pre></div></div>
+   <span class="hljs-attribute">check-if-element-in-db</span>: check-<span class="hljs-keyword">if</span>-element-<span class="hljs-keyword">in</span>-db
+   <span class="hljs-attribute">get-element-from-db</span>: get-element-<span class="hljs-keyword">from</span>-db</pre></div></div>
             
         </li>
         

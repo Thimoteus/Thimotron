@@ -1,8 +1,9 @@
 (function(){
-  var request, ref$, settings, repeat, checkIfElementInDb, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, Inbox, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, transformStrings, bulletify, smallify, numberify, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
+  var request, ref$, settings, repeatFn, checkIfElementInDb, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, smallify, bulletify, numberify, Inbox, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   request = require('request');
-  ref$ = require('./core'), settings = ref$.settings, repeat = ref$.repeat, checkIfElementInDb = ref$.checkIfElementInDb, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
+  ref$ = require('./core'), settings = ref$.settings, repeatFn = ref$.repeatFn, checkIfElementInDb = ref$.checkIfElementInDb, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
+  ref$ = require('./strings'), smallify = ref$.smallify, bulletify = ref$.bulletify, numberify = ref$.numberify;
   Inbox = require('./mail');
   settings = settings.modules.bailiff;
   subreddit = settings.subreddit;
@@ -51,26 +52,6 @@
     var charges;
     charges = recurseThroughRe(/^\*\s([^\/u\/].+)$/m, pm);
     return charges;
-  };
-  transformStrings = curry$(function(initial, joiner, arr){
-    var theHead, theTail;
-    theHead = initial + head(arr);
-    theTail = join(joiner, [''].concat(tail(arr)));
-    return theHead + theTail;
-  });
-  bulletify = transformStrings('* ', '\n* ');
-  smallify = transformStrings('^^^^^^^', ' ^^^^^^^');
-  numberify = function(strings){
-    var i, str;
-    return (function(){
-      var i$, ref$, len$, results$ = [];
-      for (i$ = 0, len$ = (ref$ = strings).length; i$ < len$; ++i$) {
-        i = i$;
-        str = ref$[i$];
-        results$.push("[" + (i + 1) + "](" + str + ")");
-      }
-      return results$;
-    }());
   };
   summonsText = function(charges, id){
     var caseLink, satirical, rights, msg;
@@ -299,14 +280,15 @@
     var my, role, declare, renderedEvidence, signature, msg;
     my = spoiler("I'll be", "IAMA BOT, AMA");
     role = getRandomElementFrom(roles);
-    declare = smallify(['The', 'following', 'is', 'an', 'archive', 'of', 'the', 'evidence:']);
-    renderedEvidence = smallify(
+    declare = smallify(5)(['The', 'following', 'is', 'an', 'archive', 'of', 'the', 'evidence:']);
+    renderedEvidence = smallify(5)(
     numberify(
     archive));
-    signature = smallify(['This', 'bot', 'by', "/u/" + recipient + ".", 'Code', 'viewable', 'at', "github.com/" + recipient + "/" + username]);
+    signature = smallify(5)(['This', 'bot', 'by', "/u/" + recipient + ".", 'Code', 'viewable', 'at', "github.com/" + recipient + "/" + username]);
     msg = "" + my + " " + role + "\n\n" + declare + " " + renderedEvidence + " " + signature;
-    replyTo(post.name, msg);
-    return commitArrayToDb([post], 'bailiffEvidence');
+    return commitArrayToDb([post], 'bailiffEvidence', function(){
+      return replyTo(post.name, msg);
+    });
   };
   processCases = function(){
     return robot.get("/r/" + subreddit + "/new.json", {
@@ -337,7 +319,7 @@
   };
   module.exports = {
     bailiff: function(){
-      return repeat(settings.cycle_time, bailiff, 'bailiff');
+      return repeatFn(settings.cycle_time, bailiff, 'bailiff');
     }
   };
   function import$(obj, src){

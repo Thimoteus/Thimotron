@@ -45,8 +45,18 @@
                 </a>
               
                 
+                <a class="source" href="postman.html">
+                  postman.ls
+                </a>
+              
+                
                 <a class="source" href="search.html">
                   search.ls
+                </a>
+              
+                
+                <a class="source" href="strings.html">
+                  strings.ls
                 </a>
               
             </div>
@@ -87,10 +97,11 @@
             </div>
             
             <div class="content"><div class='highlight'><pre>
-{login, repeat} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
+{login} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
 {bailiff} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./bailiff'</span>
 {image-scraper} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./image-scraper'</span>
 {comments-search, self-texts-search, titles-search} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./search'</span>
+{postman} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./postman'</span>
 
 <span class="hljs-built_in">module</span>.exports =
    <span class="hljs-attribute">comments-search</span>: comments-search
@@ -98,7 +109,8 @@
    <span class="hljs-attribute">titles-search</span>: titles-search
    <span class="hljs-attribute">login</span>: login
    <span class="hljs-attribute">bailiff</span>: bailiff
-   <span class="hljs-attribute">image-scraper</span>: image-scraper</pre></div></div>
+   <span class="hljs-attribute">image-scraper</span>: image-scraper
+   <span class="hljs-attribute">postman</span>: postman</pre></div></div>
             
         </li>
         

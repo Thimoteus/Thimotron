@@ -1,5 +1,5 @@
 global <<< require 'prelude-ls'
-{settings, recipient, say, robot, repeat, simplify-listing, send-pm, commit-array-to-db} = require './core'
+{settings, recipient, say, robot, repeat-fn, simplify-listing, send-pm, commit-array-to-db} = require './core'
 settings = settings.modules.search
 subs = settings.subreddits
 cycle-time = settings.cycle_time or 60_000ms
@@ -74,9 +74,9 @@ pm-updates = (array) ->
    send-pm "Someone mentioned #keyword", msg, recipient
 
 ## repeats the search, commits hits to the 'mention' db, then sends pms
-repeat-self-texts-search = -> repeat cycle-time, search-self-texts, 'self-texts-search', (posts) -> commit-array-to-db posts, 'mentions', pm-updates
-repeat-comments-search = -> repeat cycle-time, search-comments, 'comments-search', (comments) -> commit-array-to-db comments, 'mentions', pm-updates
-repeat-title-search = -> repeat cycle-time, search-titles, 'titles-search', (titles) -> commit-array-to-db titles, 'mentions', pm-updates
+repeat-self-texts-search = -> repeat-fn cycle-time, search-self-texts, 'self-texts-search', (posts) -> commit-array-to-db posts, 'mentions', pm-updates
+repeat-comments-search = -> repeat-fn cycle-time, search-comments, 'comments-search', (comments) -> commit-array-to-db comments, 'mentions', pm-updates
+repeat-title-search = -> repeat-fn cycle-time, search-titles, 'titles-search', (titles) -> commit-array-to-db titles, 'mentions', pm-updates
 
 module.exports =
    comments-search: repeat-comments-search

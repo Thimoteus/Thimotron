@@ -45,8 +45,18 @@
                 </a>
               
                 
+                <a class="source" href="postman.html">
+                  postman.ls
+                </a>
+              
+                
                 <a class="source" href="search.html">
                   search.ls
+                </a>
+              
+                
+                <a class="source" href="strings.html">
+                  strings.ls
                 </a>
               
             </div>
@@ -74,8 +84,8 @@
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-built_in">global</span> &lt;&lt;&lt; <span class="hljs-built_in">require</span> <span class="hljs-string">'prelude-ls'</span>
-{recipient, say, robot, repeat, simplify-listing, send-pm, commit-array-<span class="hljs-keyword">to</span>-db} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
-settings = <span class="hljs-built_in">require</span> <span class="hljs-string">'../../settings'</span> .modules.search
+{settings, recipient, say, robot, repeat-fn, simplify-listing, send-pm, commit-array-<span class="hljs-keyword">to</span>-db} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./core'</span>
+settings = settings.modules.search
 subs = settings.subreddits
 cycle-time = settings.cycle_time <span class="hljs-keyword">or</span> <span class="hljs-number">60_000ms</span>
 username = robot.options.login.username</pre></div></div>
@@ -343,9 +353,9 @@ includes the author, keyword and a link with context, plus the sub in which it a
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">repeat-self-texts-search</span> = -&gt;</span> repeat cycle-time, search-self-texts, <span class="hljs-string">'self-texts-search'</span>, <span class="hljs-function"><span class="hljs-params">(posts)</span> -&gt;</span> commit-array-<span class="hljs-keyword">to</span>-db posts, <span class="hljs-string">'mentions'</span>, pm-updates
-<span class="hljs-function"><span class="hljs-title">repeat-comments-search</span> = -&gt;</span> repeat cycle-time, search-comments, <span class="hljs-string">'comments-search'</span>, <span class="hljs-function"><span class="hljs-params">(comments)</span> -&gt;</span> commit-array-<span class="hljs-keyword">to</span>-db comments, <span class="hljs-string">'mentions'</span>, pm-updates
-<span class="hljs-function"><span class="hljs-title">repeat-title-search</span> = -&gt;</span> repeat cycle-time, search-titles, <span class="hljs-string">'titles-search'</span>, <span class="hljs-function"><span class="hljs-params">(titles)</span> -&gt;</span> commit-array-<span class="hljs-keyword">to</span>-db titles, <span class="hljs-string">'mentions'</span>, pm-updates
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">repeat-self-texts-search</span> = -&gt;</span> repeat-fn cycle-time, search-self-texts, <span class="hljs-string">'self-texts-search'</span>, <span class="hljs-function"><span class="hljs-params">(posts)</span> -&gt;</span> commit-array-<span class="hljs-keyword">to</span>-db posts, <span class="hljs-string">'mentions'</span>, pm-updates
+<span class="hljs-function"><span class="hljs-title">repeat-comments-search</span> = -&gt;</span> repeat-fn cycle-time, search-comments, <span class="hljs-string">'comments-search'</span>, <span class="hljs-function"><span class="hljs-params">(comments)</span> -&gt;</span> commit-array-<span class="hljs-keyword">to</span>-db comments, <span class="hljs-string">'mentions'</span>, pm-updates
+<span class="hljs-function"><span class="hljs-title">repeat-title-search</span> = -&gt;</span> repeat-fn cycle-time, search-titles, <span class="hljs-string">'titles-search'</span>, <span class="hljs-function"><span class="hljs-params">(titles)</span> -&gt;</span> commit-array-<span class="hljs-keyword">to</span>-db titles, <span class="hljs-string">'mentions'</span>, pm-updates
 
 <span class="hljs-built_in">module</span>.exports =
    <span class="hljs-attribute">comments-search</span>: repeat-comments-search
