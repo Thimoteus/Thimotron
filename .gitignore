@@ -6,5 +6,6 @@ log.txt
 *.swp
 *.swo
 tags
+TAGS
 *.tags
 .nvmrc
