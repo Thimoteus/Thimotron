@@ -1,8 +1,8 @@
 (function(){
-  var request, ref$, settings, repeatFn, checkIfElementInDb, recipient, robot, say, simplifyListing, sendPm, replyTo, commitArrayToDb, recurseThroughRe, smallify, bulletify, numberify, Inbox, subreddit, username, inbox, sameLength, substr, wholestr, spoiler, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
+  var request, ref$, settings, repeatFn, haveWeRepliedHere, recipient, robot, say, simplifyListing, sendPm, replyTo, recurseThroughRe, haveWePostedHere, smallify, bulletify, numberify, Inbox, subreddit, username, inbox, sameLength, substr, spoiler, secretMessage, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   request = require('request');
-  ref$ = require('./core'), settings = ref$.settings, repeatFn = ref$.repeatFn, checkIfElementInDb = ref$.checkIfElementInDb, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, commitArrayToDb = ref$.commitArrayToDb, recurseThroughRe = ref$.recurseThroughRe;
+  ref$ = require('./core'), settings = ref$.settings, repeatFn = ref$.repeatFn, haveWeRepliedHere = ref$.haveWeRepliedHere, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, recurseThroughRe = ref$.recurseThroughRe, haveWePostedHere = ref$.haveWePostedHere;
   ref$ = require('./strings'), smallify = ref$.smallify, bulletify = ref$.bulletify, numberify = ref$.numberify;
   Inbox = require('./mail');
   settings = settings.modules.bailiff;
@@ -17,13 +17,13 @@
   substr = function(sub, str){
     return new RegExp(sub).test(str);
   };
-  wholestr = function(sub, str){
-    return new RegExp("^" + sub + "$").test(str);
-  };
   spoiler = function(link, spoiler){
     return "[" + link + "](#s '" + spoiler + "')";
   };
-  roles = ["the guy who plays AC/DC in the back of the room, not paying attention to the trial.", "Zoidberg (/)(°,,,°)(/)", "the guy who gasps at the inhumanity ⊙▃⊙", "the guy who stands in the back, wearing sunglasses and saying nothing (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄", "a teddy bear! ʕ´•ᴥ•`ʔ", "Homer J. Simpson ~(8 ^(| )", "sitting in the corner, not doing anything, not doing anything at all ... ", "Groot. **I AM GROOT.**", "the guy who sells combination Indian/Pakistani/Mexican food. But only dishes that combine all three.", "the world's smallest violinist, playing the world's largest violin ♫", "someone who tells you how good cake is, while his mouth is full of cake. MM, MM.", "Maximus Decimus Meridius, father to a murdered son, husband to a murdered wife. And I will have my vengeance, in this life or the next.", "the guy who [spoils](#s 'Snape kills Dumbledore') Harry Potter.", "the guy who [spoils](#s 'Jesus dies') Passion of the Christ.", "the guy who [spoils](#s 'Darth Vader is Luke's father') Star Wars."];
+  secretMessage = function(str){
+    return "[](#" + str + ")";
+  };
+  roles = ["the guy who plays AC/DC in the back of the room," + " not paying attention to the trial.", "Zoidberg (/)(°,,,°)(/)", "the guy who gasps at the inhumanity ⊙▃⊙", "the guy who stands in the back," + " wearing sunglasses and saying nothing (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄", "a teddy bear! ʕ´•ᴥ•`ʔ", "Homer J. Simpson ~(8 ^(| )", "sitting in the corner, not doing anything, not doing anything at all ...", "Groot. **I AM GROOT.**", "the guy who sells combination Indian/Pakistani/Mexican food." + " But only dishes that combine all three.", "the world's smallest violinist, playing the world's largest violin ♫", "someone who tells you how good cake is," + " while his mouth is full of cake. MM, MM.", "Maximus Decimus Meridius," + " father to a murdered son, husband to a murdered wife." + " And I will have my vengeance, in this life or the next.", "the guy who [spoils](#s 'Snape kills Dumbledore') Harry Potter.", "the guy who [spoils](#s 'Jesus dies') Passion of the Christ.", "the guy who [spoils](#s 'Darth Vader is Luke's father') Star Wars."];
   getRandomElementFrom = function(list){
     var ind;
     ind = floor(Math.random() * list.length);
@@ -86,146 +86,118 @@
   };
   checkMail = function(){
     inbox.getMentions(function(err, res, bod){
-      var i$, len$, results$ = [];
       if (err || !res) {
-        return say('Error: inbox.get-mentions');
+        return say('Error: inbox.getMentions');
       }
       if (res.statusCode !== 200) {
-        return say("Error: " + res.statusCode + ", inbox.get-mentions");
+        return say("Error: " + res.statusCode + ", inbox.getMentions");
       }
-      for (i$ = 0, len$ = bod.length; i$ < len$; ++i$) {
-        results$.push((fn$.call(this, bod[i$])));
-      }
-      return results$;
-      function fn$(pm){
-        return checkCase(pm);
-      }
+      return map(checkCase)(
+      filter(function(it){
+        return it.author === recipient;
+      })(
+      filter(function(it){
+        return it['new'];
+      })(
+      bod)));
     });
     return inbox.getCommentReplies(function(err, res, bod){
-      var i$, len$, results$ = [];
       if (err || !res) {
         return;
       }
       if (res.statusCode !== 200) {
-        return say("Error: " + res.statusCode + ", inbox.get-replies");
+        return say("Error: " + res.statusCode + ", inbox.getReplies");
       }
-      for (i$ = 0, len$ = bod.length; i$ < len$; ++i$) {
-        results$.push((fn$.call(this, bod[i$])));
-      }
-      return results$;
-      function fn$(reply){
-        return confirmCase(reply);
-      }
+      return map(confirmCase)(
+      filter(function(it){
+        return it.author === recipient;
+      })(
+      filter(function(it){
+        return it['new'];
+      })(
+      bod)));
     });
   };
   confirmCase = function(reply){
-    var validConfirmations, isValid, conf;
-    if (reply.author !== recipient) {
+    var validConfirmations, isValid, caseId, cmt, theLink;
+    validConfirmations = ["yes", "y", "You're goddamn right."];
+    isValid = orList(
+    map((function(it){
+      return it === reply.body;
+    }))(
+    validConfirmations));
+    if (!isValid) {
       return;
     }
-    validConfirmations = ["yes", "y", "You're goddamn right."];
+    inbox.read(reply);
+    caseId = /\/comments\/(\w{6})\//.exec(reply.context)[1];
+    cmt = unchars(slice$.call(reply.parent_id, 3));
+    theLink = "/r/" + subreddit + "/comments/" + caseId + ".json";
+    return robot.get(theLink, {
+      comment: cmt
+    }, function(err, res, bod){
+      var text, charges, defendants;
+      if (err || !res) {
+        return say("Error: confirmCase");
+      }
+      if (res.statusCode !== 200) {
+        return say("Error: " + res.statusCode + ", confirmCase");
+      }
+      text = function(it){
+        return it[0].body;
+      }(
+      simplifyListing(
+      function(it){
+        return it[1];
+      }(
+      JSON.parse(
+      bod))));
+      charges = getChargesFromConfirmation(text);
+      defendants = getDefendantsFromConfirmation(text);
+      sendSummons(caseId, charges, defendants);
+      return declareBailiffnessToCourt(caseId, reply.name, charges, defendants);
+    });
+  };
+  checkCase = function(pm){
+    var validSummons, isValid, summs, id;
+    validSummons = ["bailiffy this case", "summon these scumbags", "summon this scumbag", "summon the defendant", "summon the defendants", "serve this scumbag", "serve these scumbags"];
     isValid = fold1(curry$(function(x$, y$){
       return x$ || y$;
     }), (function(){
       var i$, ref$, len$, results$ = [];
-      for (i$ = 0, len$ = (ref$ = validConfirmations).length; i$ < len$; ++i$) {
-        conf = ref$[i$];
-        results$.push(wholestr(conf, reply.body));
+      for (i$ = 0, len$ = (ref$ = validSummons).length; i$ < len$; ++i$) {
+        summs = ref$[i$];
+        results$.push(substr(summs, pm.body));
       }
       return results$;
     }()));
     if (!isValid) {
       return;
     }
-    return checkIfElementInDb(reply, 'acknowledgedPms', function(exists){
-      var caseId;
-      if (exists) {
-        return;
+    inbox.read(pm);
+    id = 't3_' + /comments\/(\w{6})\//.exec(pm.context)[1];
+    return robot.get("/by_id/" + id, function(err, res, bod){
+      var post, defendants, charges, msg;
+      if (err || !res) {
+        return say("Error: checkCase");
       }
-      commitArrayToDb([reply], 'acknowledgedPms');
-      caseId = /\/comments\/(\w{6})\//.exec(reply.context)[1];
-      return robot.get("/r/" + subreddit + "/comments/" + caseId + ".json", {
-        comment: unchars(slice$.call(reply.parent_id, 3))
-      }, function(err, res, bod){
-        var text, charges, defendants;
-        if (err || !res) {
-          return say("Error: confirm-case");
-        }
-        if (res.statusCode !== 200) {
-          return say("Error: " + res.statusCode + ", confirm-case");
-        }
-        text = function(it){
-          return it[0].body;
-        }(
-        simplifyListing(
-        function(it){
-          return it[1];
-        }(
-        JSON.parse(
-        bod))));
-        charges = getChargesFromConfirmation(text);
-        defendants = getDefendantsFromConfirmation(text);
-        sendSummons(caseId, charges, defendants);
-        return declareBailiffnessToCourt(caseId, reply.name, charges, defendants);
-      });
-    });
-  };
-  checkCase = function(pm){
-    if (pm['new']) {
-      inbox.read(pm);
-    }
-    if (pm.author !== recipient) {
-      return;
-    }
-    return checkIfElementInDb(pm, 'receivedPms', function(exists){
-      var validSummons, isValid, summs, id;
-      if (exists) {
-        return;
+      if (res.statusCode !== 200) {
+        return say("Error: " + res.statusCode + ", checkCase");
       }
-      commitArrayToDb([pm], 'receivedPms');
-      validSummons = ["bailiffy this case", "summon these scumbags", "summon this scumbag", "summon the defendant", "summon the defendants", "serve this scumbag", "serve these scumbags"];
-      isValid = fold1(curry$(function(x$, y$){
-        return x$ || y$;
-      }), (function(){
-        var i$, ref$, len$, results$ = [];
-        for (i$ = 0, len$ = (ref$ = validSummons).length; i$ < len$; ++i$) {
-          summs = ref$[i$];
-          results$.push(substr(summs, pm.body));
-        }
-        return results$;
-      }()));
-      if (!isValid) {
-        return;
+      post = simplifyListing(bod)[0];
+      defendants = getDefendantsFromTitle(post.title);
+      charges = getChargesFromBody(post.selftext);
+      if (defendants.length > 0 && charges.length > 0) {
+        defendants = map(function(it){
+          return it.toLowerCase();
+        }, defendants);
+        charges = bulletify(charges);
+        defendants = bulletify(defendants);
+        msg = "Are these the defendants and charges?\n\n**DEFENDANTS**:\n\n" + defendants + "\n\n**CHARGES**:\n\n" + charges;
+        return replyTo(pm.name, msg);
+      } else {
+        return say('bad defendants or charges');
       }
-      id = 't3_' + /comments\/(\w{6})\//.exec(pm.context)[1];
-      return robot.get("/by_id/" + id, function(err, res, bod){
-        var post;
-        if (err || !res) {
-          return say("Error: check-case");
-        }
-        if (res.statusCode !== 200) {
-          return say("Error: " + res.statusCode + ", check-case");
-        }
-        post = simplifyListing(bod)[0];
-        return checkIfElementInDb(post, 'bailiffCases', function(exists){
-          var defendants, charges, msg;
-          if (exists) {
-            return;
-          }
-          defendants = getDefendantsFromTitle(post.title);
-          charges = getChargesFromBody(post.selftext);
-          if (defendants.length > 0 && charges.length > 0) {
-            defendants = map(function(it){
-              return it.toLowerCase();
-            }, defendants);
-            charges = bulletify(charges);
-            defendants = bulletify(defendants);
-            msg = "Are these the defendants and charges?\n\n**DEFENDANTS**:\n\n" + defendants + "\n\n**CHARGES**:\n\n" + charges;
-            replyTo(pm.name, msg);
-            return commitArrayToDb([post], 'bailiffCases');
-          }
-        });
-      });
     });
   };
   submitEvidenceToArchive = function(post, cb){
@@ -235,9 +207,9 @@
       return /document\.location\.replace\("(.+)"\)},1000\)/.exec(bod)[1];
     };
     selftext = post.selftext;
-    return checkIfElementInDb(post, 'bailiffEvidence', function(exists){
+    return haveWePostedHere(post, function(weHave){
       var evidence, archivedEvidence, i$, len$, results$ = [];
-      if (exists) {
+      if (weHave) {
         return;
       }
       evidence = getEvidenceFrom(selftext);
@@ -260,7 +232,8 @@
             return say("Something went wrong, submit-evidence-to-archive");
           }
           if (res.statusCode !== 200) {
-            return say("Something went wrong: " + res.statusCode + ", submit-evidence-to-archive");
+            say(("Something went wrong: " + res.statusCode + ",") + " submit-evidence-to-archive");
+            return;
           }
           archivedEvidence.push(getRedirectLinkFrom(bod));
           if (sameLength(archivedEvidence, evidence)) {
@@ -286,9 +259,7 @@
     archive));
     signature = smallify(5)(['This', 'bot', 'by', "/u/" + recipient + ".", 'Code', 'viewable', 'at', "github.com/" + recipient + "/" + username]);
     msg = "" + my + " " + role + "\n\n" + declare + " " + renderedEvidence + " " + signature;
-    return commitArrayToDb([post], 'bailiffEvidence', function(){
-      return replyTo(post.name, msg);
-    });
+    return replyTo(post.name, msg);
   };
   processCases = function(){
     return robot.get("/r/" + subreddit + "/new.json", {
@@ -299,7 +270,8 @@
         return say("Something went wrong, bailiff-get-new-cases");
       }
       if (res.statusCode !== 200) {
-        return say("Something went wrong: " + res.statusCode + ", bailiff-get-new-cases");
+        say("Something went wrong: " + res.statusCode + ", bailiff-get-new-cases");
+        return;
       }
       cases = simplifyListing(bod);
       for (i$ = 0, len$ = cases.length; i$ < len$; ++i$) {

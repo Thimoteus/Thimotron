@@ -1,52 +1,53 @@
 global <<< require 'prelude-ls'
-Jaraw = require 'jaraw'
-mongo = require 'mongojs'
-path = require 'path'
-argv = require('minimist')(process.argv)
+require! {
+  'jaraw': Jaraw
+  'path': path
+  'minimist': minimist
+  './db': db-lib
+}
+argv = minimist process.argv
 
-const settings-path = if argv.settings
+settings-path = if argv.settings
    path.resolve __dirname, '../../', argv.settings
 else
    path.resolve __dirname, '../../settings.json'
-const settings = require settings-path
-const db-name = settings.db.name or 'bot'
-const db-collections =
-   * \mentions
-   * \receivedPms
-   * \acknowledgedPms
-   * \bailiffCases
-   * \bailiffEvidence
-   * \postman
-const db = mongo db-name, db-collections
+settings = require settings-path
 
-const user-agent = "#{settings.info.name}@#{settings.info.version or '1.0.0'} by #{settings.info.author or ''}"
-const username = settings.login.username
-const password = settings.login.password
-const client-id = settings.oauth.client_id
-const secret = settings.oauth.client_secret
-const recipient = settings.recipient
-const talkative = settings.verbose or false
+db-name = settings.db.name or 'bot'
+{
+  get-element-from-db
+  check-if-element-in-db
+  commit-array-to-db
+} = db-lib db-name
+
+user-agent = "#{settings.info.name}@#{settings.info.version or '1.0.0'} by #{settings.info.author or ''}"
+username = settings.login.username
+password = settings.login.password
+client-id = settings.oauth.client_id
+secret = settings.oauth.client_secret
+recipient = settings.recipient
+talkative = settings.verbose or false
 
 ## Jaraw lets us access the reddit API
 ## with a minimum of hassle.
 robot = new Jaraw do
-   type: \script
-   login:
-      username: username
-      password: password
-   oauth:
-      id: client-id
-      secret: secret
-   user_agent: user-agent
-   rate_limit: 1_000ms
+  type: \script
+  login:
+    username: username
+    password: password
+  oauth:
+    id: client-id
+    secret: secret
+  user_agent: user-agent
+  rate_limit: 1_000ms
 
 ## console.log for debugging
-say = -> if talkative => console.log it
+say = -> if talkative => console.log it; return it
 
 ## basic login function
 login = (cb) ->
-   say "#username is initializing"
-   robot.login-as-script cb
+  say "#username is initializing"
+  robot.login-as-script cb
 
 ## takes:
 ## number `t` of milliseconds;
@@ -55,74 +56,122 @@ login = (cb) ->
 ## optional `args`;
 ## result: repeats `f(args)` every `t` ms
 repeat-fn = (t, f, n, ...args) ->
-   fn = ->
-      set-timeout fn, t
-      say "Beginning new loop for #n"
-      f ...args
-   fn!
+  fn = ->
+    say "Beginning new loop for #n"
+    f ...args
+  fn()
+  set-interval fn, t
+## in case you want t to be dynamic
+repeat-fn2 = (t, f, n, ...args) ->
+  fn = ->
+    set-timeout fn, t
+    say "Beginning new loop for #n"
+    f ...args
+  fn!
 
-## takes a regular expression and a string and returns an array of all matches in the string
+## takes a regular expression and a string
+# and returns an array of all matches in the string
 recurse-through-re = (re, str) -->
-   flag = 'g'
-   flag += 'i' if re.ignore-case
-   flag += 'm' if re.multiline
-   rx = new RegExp re.source, flag
-   ret = []
-   while hit = rx.exec str
-      ret.push hit.1
-   return ret
+  flag = 'g'
+  flag += 'i' if re.ignore-case
+  flag += 'm' if re.multiline
+  rx = new RegExp re.source, flag
+  ret = []
+  while hit = rx.exec str
+    ret.push hit.1
+  return ret
 
 ## applies JSON.parse when possible, otherwise is the identity
 JSONparse = ->
-   try
-      b = JSON.parse it
-      return b
-   catch
-      if e instanceof SyntaxError
-         return it
-      else
-         throw e
+  try
+    b = JSON.parse it
+    return b
+  catch
+    if e instanceof SyntaxError
+      return it
+    else
+      throw e
 
 ## useful for simplifying "list" responses from reddit
 simplify-listing = JSONparse >> (.data.children) >> map (.data)
 
-## takes an array and inserts each element into `db-collection`, unless that element is already in (based on a .name attribute)
-## useful for putting listings (by using simplify-listing) into a db
-commit-array-to-db = (array, collection, cb = id) -->
-   arr = []
-   if array.length => for let element, i in array
-      (exists) <- check-if-element-in-db element, collection
-      if exists => return
+## checks if we've posted in a thread before.
+## identifier is a string unique to whatever program is checking, i.e.
+## have *we* posted here.
+have-we-posted-here = (link, identifier, cb) -->
+  ## parse the arguments
+  if typeof! identifier is 'Function' => [ cb, identifier ] = [ identifier, '' ]
+  ## the selfpost or link we're accessing
+  the-link = "/r/#{link.subreddit}/comments/#{link.id}.json"
+  ## these should be safe enough,, although the api isn't terribly clear
+  ## about whether there are upper bounds on these
+  params =
+    depth: 20
+    limit: 250
+  ## returns true if we're found in the comments, else false
+  callback = (err, res, bod) ->
+    if err or not res => return say 'Error: have-we-posted-here'
+    if res.status-code isnt 200
+      return say "Error: #{res.status-code}, have-we-posted-here"
+    ## checks to see if the body has the identifier
+    has-identifier = -> 0 <= it.body.index-of identifier
+    ## put a whole lot of comments into an array
+    posts = bod |> JSON.parse |> (.1) |> simplify-listing
+    we-have = posts
+      |> filter (.author is username)
+      |> filter has-identifier
+      |> or-list
+    cb we-have
 
-      db[collection].insert element
-      say "inserted #{element.name} to database #collection"
-      arr.push element
-      if i == array.length - 1 => return cb arr
-   else
-      cb arr
+  robot.get the-link, params, callback
 
-## returns true if `el` is in `collection` of the database, otherwise false
-check-if-element-in-db = (el, collection, cb = id) -->
-   db[collection].find name: el.name .limit 1 .count (err, count) ->
-      if err => cb err
-      ret = count != 0
-      cb ret
+have-we-replied-here = (reply, cb) -->
+  ## reply is from a call to /r/(sub)/comments/(article)
+  if reply.link_id
+    id = link_id |> chars |> drop 3 |> unchars
+    the-post = "/r/#{reply.subreddit}/comments/#id/_/#{reply.id}.json"
+  ## reply is from a call to /message/(folder)
+  else if reply.context
+    the-post = reply.context |>
+      chars |> reverse |> drop 10 |> reverse |> unchars
+  ## not sure how else to get replies?
+  else
+    throw new Error "I don't recognize this type of reply."
 
-## gets an element from the database
-get-element-from-db = (el, collection, cb = id) -->
-   db[collection].findOne name: el.name , (err, doc) ->
-      cb err, doc
+  params =
+    limit: 250
+    depth: 20
+
+  callback = (err, res, bod) ->
+    if err or not res => return say 'Error: have-we-replied-here'
+    if res.status-code isnt 200
+      return say "Error: #{res.status-code}, have-we-replied-here"
+    ## this only gets the children
+    replies-listing = bod
+    |> JSON.parse
+    |> (.1)
+    |> simplify-listing
+    |> (.0.replies)
+    ## check to see if there are any replies
+    if replies-listing
+      replies = simplify-listing replies-listing
+      return cb any (.author is username), replies
+    else
+      return cb false
+
+  robot.get the-post, params, callback
 
 ## sends a reply to `dest` with message `text`
 reply-to = (dest, text) -->
-   params =
-      thing_id: dest
-      text: text
-      api_type: 'json'
-   robot.post "/api/comment", params, (err, res, bod) ->
-      if err or not res => return say "Error: reply-to"
-      if res.status-code isnt 200 => return say "Error: #{res.status-code}, reply-to"
-      return say "Reply sent:\nDest: #dest\nText: #text"
+  params =
+    thing_id: dest
+    text: text
+    api_type: 'json'
+  robot.post '/api/comment', params, (err, res, bod) ->
+    if err or not res => return say 'Error: reply-to'
+    if res.status-code isnt 200
+      return say "Error: #{res.status-code}, reply-to"
+    return say "Reply sent:\nDest: #dest\nText: #text"
 
 ## sends a pm with subject `title` to `receiver` with message `body`
 send-pm = (title, body, receiver) -->
@@ -132,23 +181,26 @@ send-pm = (title, body, receiver) -->
       subject: title
       text: body
       to: receiver
-   robot.post "/api/compose", params, (err, res, bod) ->
+   robot.post '/api/compose', params, (err, res, bod) ->
       if err or not res => return say "Error: send-pm"
-      if res.status-code isnt 200 => return say "Error: #{res.status-code}, send-pm"
+      if res.status-code isnt 200
+        return say "Error: #{res.status-code}, send-pm"
       return say "PM sent:\nRecipient: #receiver\nTitle: #title\nBody: #body"
 
 ## where the magic happens
 module.exports =
-   login: login
-   settings: settings
-   recipient: recipient
-   send-pm: send-pm
-   reply-to: reply-to
-   commit-array-to-db: commit-array-to-db
-   recurse-through-re: recurse-through-re
-   simplify-listing: simplify-listing
-   repeat-fn: repeat-fn
-   say: say
-   robot: robot
-   check-if-element-in-db: check-if-element-in-db
-   get-element-from-db: get-element-from-db
+  login: login
+  settings: settings
+  recipient: recipient
+  send-pm: send-pm
+  reply-to: reply-to
+  commit-array-to-db: commit-array-to-db
+  recurse-through-re: recurse-through-re
+  simplify-listing: simplify-listing
+  repeat-fn: repeat-fn
+  say: say
+  robot: robot
+  check-if-element-in-db: check-if-element-in-db
+  have-we-posted-here: have-we-posted-here
+  have-we-replied-here: have-we-replied-here
+  get-element-from-db: get-element-from-db

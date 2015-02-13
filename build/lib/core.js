@@ -1,17 +1,17 @@
 (function(){
-  var Jaraw, mongo, path, argv, settingsPath, settings, dbName, dbCollections, db, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, recurseThroughRe, JSONparse, simplifyListing, commitArrayToDb, checkIfElementInDb, getElementFromDb, replyTo, sendPm, slice$ = [].slice;
+  var Jaraw, path, minimist, dbLib, argv, settingsPath, settings, dbName, ref$, getElementFromDb, checkIfElementInDb, commitArrayToDb, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, repeatFn2, recurseThroughRe, JSONparse, simplifyListing, haveWePostedHere, haveWeRepliedHere, replyTo, sendPm, slice$ = [].slice, toString$ = {}.toString;
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
-  mongo = require('mongojs');
   path = require('path');
-  argv = require('minimist')(process.argv);
+  minimist = require('minimist');
+  dbLib = require('./db');
+  argv = minimist(process.argv);
   settingsPath = argv.settings
     ? path.resolve(__dirname, '../../', argv.settings)
     : path.resolve(__dirname, '../../settings.json');
   settings = require(settingsPath);
   dbName = settings.db.name || 'bot';
-  dbCollections = ['mentions', 'receivedPms', 'acknowledgedPms', 'bailiffCases', 'bailiffEvidence', 'postman'];
-  db = mongo(dbName, dbCollections);
+  ref$ = dbLib(dbName), getElementFromDb = ref$.getElementFromDb, checkIfElementInDb = ref$.checkIfElementInDb, commitArrayToDb = ref$.commitArrayToDb;
   userAgent = settings.info.name + "@" + (settings.info.version || '1.0.0') + " by " + (settings.info.author || '');
   username = settings.login.username;
   password = settings.login.password;
@@ -34,7 +34,8 @@
   });
   say = function(it){
     if (talkative) {
-      return console.log(it);
+      console.log(it);
+      return it;
     }
   };
   login = function(cb){
@@ -42,6 +43,16 @@
     return robot.loginAsScript(cb);
   };
   repeatFn = function(t, f, n){
+    var args, fn;
+    args = slice$.call(arguments, 3);
+    fn = function(){
+      say("Beginning new loop for " + n);
+      return f.apply(null, args);
+    };
+    fn();
+    return setInterval(fn, t);
+  };
+  repeatFn2 = function(t, f, n){
     var args, fn;
     args = slice$.call(arguments, 3);
     fn = function(){
@@ -86,52 +97,92 @@
   }, map(function(it){
     return it.data;
   }));
-  commitArrayToDb = curry$(function(array, collection, cb){
-    var arr, i$, len$, results$ = [];
-    cb == null && (cb = id);
-    arr = [];
-    if (array.length) {
-      for (i$ = 0, len$ = array.length; i$ < len$; ++i$) {
-        results$.push((fn$.call(this, i$, array[i$])));
+  haveWePostedHere = curry$(function(link, identifier, cb){
+    var ref$, theLink, params, callback;
+    if (toString$.call(identifier).slice(8, -1) === 'Function') {
+      ref$ = [identifier, ''], cb = ref$[0], identifier = ref$[1];
+    }
+    theLink = "/r/" + link.subreddit + "/comments/" + link.id + ".json";
+    params = {
+      depth: 20,
+      limit: 250
+    };
+    callback = function(err, res, bod){
+      var hasIdentifier, posts, weHave;
+      if (err || !res) {
+        return say('Error: have-we-posted-here');
       }
-      return results$;
+      if (res.statusCode !== 200) {
+        return say("Error: " + res.statusCode + ", have-we-posted-here");
+      }
+      hasIdentifier = function(it){
+        return 0 <= it.body.indexOf(identifier);
+      };
+      posts = simplifyListing(
+      function(it){
+        return it[1];
+      }(
+      JSON.parse(
+      bod)));
+      weHave = orList(
+      filter(hasIdentifier)(
+      filter(function(it){
+        return it.author === username;
+      })(
+      posts)));
+      return cb(weHave);
+    };
+    return robot.get(theLink, params, callback);
+  });
+  haveWeRepliedHere = curry$(function(reply, cb){
+    var id, thePost, params, callback;
+    if (reply.link_id) {
+      id = unchars(
+      drop(3)(
+      chars(
+      link_id)));
+      thePost = "/r/" + reply.subreddit + "/comments/" + id + "/_/" + reply.id + ".json";
+    } else if (reply.context) {
+      thePost = unchars(
+      reverse(
+      drop(10)(
+      reverse(
+      chars(
+      reply.context)))));
     } else {
-      return cb(arr);
+      throw new Error("I don't recognize this type of reply.");
     }
-    function fn$(i, element){
-      return checkIfElementInDb(element, collection, function(exists){
-        if (exists) {
-          return;
-        }
-        db[collection].insert(element);
-        say("inserted " + element.name + " to database " + collection);
-        arr.push(element);
-        if (i === array.length - 1) {
-          return cb(arr);
-        }
-      });
-    }
-  });
-  checkIfElementInDb = curry$(function(el, collection, cb){
-    cb == null && (cb = id);
-    return db[collection].find({
-      name: el.name
-    }).limit(1).count(function(err, count){
-      var ret;
-      if (err) {
-        cb(err);
+    params = {
+      limit: 250,
+      depth: 20
+    };
+    callback = function(err, res, bod){
+      var repliesListing, replies;
+      if (err || !res) {
+        return say('Error: have-we-replied-here');
       }
-      ret = count !== 0;
-      return cb(ret);
-    });
-  });
-  getElementFromDb = curry$(function(el, collection, cb){
-    cb == null && (cb = id);
-    return db[collection].findOne({
-      name: el.name
-    }, function(err, doc){
-      return cb(err, doc);
-    });
+      if (res.statusCode !== 200) {
+        return say("Error: " + res.statusCode + ", have-we-replied-here");
+      }
+      repliesListing = function(it){
+        return it[0].replies;
+      }(
+      simplifyListing(
+      function(it){
+        return it[1];
+      }(
+      JSON.parse(
+      bod))));
+      if (repliesListing) {
+        replies = simplifyListing(repliesListing);
+        return cb(any(function(it){
+          return it.author === username;
+        }, replies));
+      } else {
+        return cb(false);
+      }
+    };
+    return robot.get(thePost, params, callback);
   });
   replyTo = curry$(function(dest, text){
     var params;
@@ -140,9 +191,9 @@
       text: text,
       api_type: 'json'
     };
-    return robot.post("/api/comment", params, function(err, res, bod){
+    return robot.post('/api/comment', params, function(err, res, bod){
       if (err || !res) {
-        return say("Error: reply-to");
+        return say('Error: reply-to');
       }
       if (res.statusCode !== 200) {
         return say("Error: " + res.statusCode + ", reply-to");
@@ -161,7 +212,7 @@
       text: body,
       to: receiver
     };
-    return robot.post("/api/compose", params, function(err, res, bod){
+    return robot.post('/api/compose', params, function(err, res, bod){
       if (err || !res) {
         return say("Error: send-pm");
       }
@@ -184,6 +235,8 @@
     say: say,
     robot: robot,
     checkIfElementInDb: checkIfElementInDb,
+    haveWePostedHere: haveWePostedHere,
+    haveWeRepliedHere: haveWeRepliedHere,
     getElementFromDb: getElementFromDb
   };
   function import$(obj, src){

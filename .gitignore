@@ -7,5 +7,6 @@ log.txt
 *.swo
 tags
 TAGS
+processes.json
 *.tags
 .nvmrc
