@@ -56,8 +56,8 @@ search = (opts, cb = id) !-->
 
 #TODO: substr is a duplicated function also found in bailiff.ls
 substr = (sub, str) --> new RegExp sub .test str
-send-notification = (list, cb = id) -->
-  robot.get '/messages/sent.json', limit: 100, (err, res, bod) ->
+send-notification = (list, cb = id) ->
+  robot.get '/message/sent.json', limit: 100, (err, res, bod) ->
     if err or not res => return say 'Error: sendNotification2'
     if res.status-code isnt 200
       return say "Error: #{res.status-code}, sendNotification2"
@@ -69,11 +69,12 @@ send-notification = (list, cb = id) -->
     notified-test = (id) -> any (substr id), pm-bodies
     ## apply test to each id to get an array of booleans telling us
     ## which ids have already shown up in sent pms
-    notified-booleans = map notified-test, list-ids
+    notified-booleans = map notified-test, ids
     ## pair up the list items with their booleans
     notification-pairs = zip list, notified-booleans
     ## reject any items who've already been sent
     to-update = reject (.1), notification-pairs
+    to-update = notification-pairs |> reject (.1) |> map (.0)
     ## send pms for each item that hasn't been sent
     pm-updates to-update
 
@@ -87,37 +88,33 @@ search-titles = search {url-param: 'new', text-property: 'title'}
 ## PMing
 ## -----
 pm-updates = (array) ->
-   ## don't send a pm if we didn't get any hits
-   if array.length == 0 => return
+  ## don't send a pm if we didn't get any hits
+  if array.length == 0 => return
 
-   ## gets the (first) search term hit in the text that we know has a hit
-   get-keyword-from = (post) ->
-      rebuilt = (rxs) -> [ new RegExp rx.source, 'i' for rx in rxs ]
-      for prop in <[ selftext body title ]> when prop of post
-         for rx in rebuilt rxs
-            if rx.test post[prop] => return rx.exec post[prop] .0
+  ## gets the (first) search term hit in the text that we know has a hit
+  get-keyword-from = (post) ->
+    rebuilt = (rxs) -> [ new RegExp rx.source, 'i' for rx in rxs ]
+    for prop in <[ selftext body title ]> when prop of post
+      for rx in rebuilt rxs
+        if rx.test post[prop] => return rx.exec post[prop] .0
 
-   ## creates the message to PM.
-   ## includes the author, keyword and a link with context, plus the sub in which it appeared.
-   msg = ''
-   for post in array
-      keyword = get-keyword-from post or 'one of your keywords'
-      switch
-      | /t3/.test post.name => msg := msg + "\n\n> `#{post.author}` mentioned [#keyword](#{post.url}?context=3) `in` /r/#{post.subreddit}"
-      | /t1/.test post.name
-         url = "/r/#{post.subreddit}/comments/#{join '' post.link_id[3 to]}/#{username}/#{post.id}?context=3"
-         msg := msg + "\n\n> /u/#{post.author} mentioned [#keyword](#{url}) in /r/#{post.subreddit}"
-   msg += "\n\nThis has been a service by #username."
-   send-pm "Someone mentioned #keyword", msg, recipient
-
-## repeats the search, commits hits to the 'mention' db, then sends pms
-repeat-self-texts-search = -> repeat-fn cycle-time, search-self-texts, 'self-texts-search', (posts) -> commit-array-to-db posts, 'mentions', pm-updates
-repeat-comments-search = -> repeat-fn cycle-time, search-comments, 'comments-search', (comments) -> commit-array-to-db comments, 'mentions', pm-updates
-repeat-comments-search2 = -> repeat-fn cycle-time, search-comments, 'commentsSearch', send-notification
-repeat-title-search = -> repeat-fn cycle-time, search-titles, 'titles-search', (titles) -> commit-array-to-db titles, 'mentions', pm-updates
+  ## creates the message to PM.
+  ## includes the author, keyword and a link with context, plus the sub in which it appeared.
+  msg = ''
+  for post in array
+    keyword = get-keyword-from post or 'one of your keywords'
+    switch
+    | /t3/.test post.name => msg := msg + "\n\n> `#{post.author}` mentioned [#keyword](#{post.url}?context=3) `in` /r/#{post.subreddit}"
+    | /t1/.test post.name
+      url = "/r/#{post.subreddit}/comments/#{join '' post.link_id[3 to]}/#{username}/#{post.id}?context=3"
+      msg := msg + "\n\n> /u/#{post.author} mentioned [#keyword](#{url}) in /r/#{post.subreddit}"
+  msg += "\n\nThis has been a service by #username."
+  send-pm "Someone mentioned #keyword", msg, recipient
 
 module.exports =
-   comments-search: repeat-comments-search
-   comments-search2: repeat-comments-search2
-   self-texts-search: repeat-self-texts-search
-   titles-search: repeat-title-search
+  comments-search: ->
+    repeat-fn cycle-time, search-comments, 'commentsSearch', send-notification
+  self-texts-search: ->
+    repeat-fn cycle-time, search-self-texts, 'selfTextsSearch', send-notification
+  titles-search: ->
+    repeat-fn cycle-time, searth-titles, 'titlesSearch', send-notification

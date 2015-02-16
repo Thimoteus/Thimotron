@@ -3,7 +3,7 @@ require! {
   'jaraw': Jaraw
   'path': path
   'minimist': minimist
-  './db': db-lib
+  #'./db': db-lib
 }
 argv = minimist process.argv
 
@@ -13,12 +13,12 @@ else
    path.resolve __dirname, '../../settings.json'
 settings = require settings-path
 
-db-name = settings.db.name or 'bot'
-{
-  get-element-from-db
-  check-if-element-in-db
-  commit-array-to-db
-} = db-lib db-name
+#db-name = settings.db.name or 'bot'
+#{
+#  get-element-from-db
+#  check-if-element-in-db
+#  commit-array-to-db
+#} = db-lib db-name
 
 user-agent = "#{settings.info.name}@#{settings.info.version or '1.0.0'} by #{settings.info.author or ''}"
 username = settings.login.username
@@ -192,13 +192,13 @@ module.exports =
   recipient: recipient
   send-pm: send-pm
   reply-to: reply-to
-  commit-array-to-db: commit-array-to-db
   recurse-through-re: recurse-through-re
   simplify-listing: simplify-listing
   repeat-fn: repeat-fn
   say: say
   robot: robot
-  check-if-element-in-db: check-if-element-in-db
   have-we-posted-here: have-we-posted-here
   have-we-replied-here: have-we-replied-here
-  get-element-from-db: get-element-from-db
+  #check-if-element-in-db: check-if-element-in-db
+  #get-element-from-db: get-element-from-db
+  #commit-array-to-db: commit-array-to-db
