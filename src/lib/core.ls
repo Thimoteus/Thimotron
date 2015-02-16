@@ -98,9 +98,8 @@ simplify-listing = JSONparse >> (.data.children) >> map (.data)
 ## checks if we've posted in a thread before.
 ## identifier is a string unique to whatever program is checking, i.e.
 ## have *we* posted here.
+## Use '' if you don't want any identifier.
 have-we-posted-here = (link, identifier, cb) -->
-  ## parse the arguments
-  if typeof! identifier is 'Function' => [ cb, identifier ] = [ identifier, '' ]
   ## the selfpost or link we're accessing
   the-link = "/r/#{link.subreddit}/comments/#{link.id}.json"
   ## these should be safe enough,, although the api isn't terribly clear
@@ -122,7 +121,6 @@ have-we-posted-here = (link, identifier, cb) -->
       |> filter has-identifier
       |> or-list
     cb we-have
-
   robot.get the-link, params, callback
 
 have-we-replied-here = (reply, cb) -->
@@ -143,9 +141,9 @@ have-we-replied-here = (reply, cb) -->
     depth: 20
 
   callback = (err, res, bod) ->
-    if err or not res => return say 'Error: have-we-replied-here'
+    if err or not res => return say 'Error: haveWeRepliedHere'
     if res.status-code isnt 200
-      return say "Error: #{res.status-code}, have-we-replied-here"
+      return say "Error: #{res.status-code}, haveWeRepliedHere"
     ## this only gets the children
     replies-listing = bod
     |> JSON.parse

@@ -1,8 +1,8 @@
 (function(){
-  var request, ref$, settings, repeatFn, haveWeRepliedHere, recipient, robot, say, simplifyListing, sendPm, replyTo, recurseThroughRe, haveWePostedHere, smallify, bulletify, numberify, Inbox, subreddit, username, inbox, sameLength, substr, spoiler, secretMessage, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
+  var request, ref$, settings, repeatFn, recipient, robot, say, simplifyListing, sendPm, replyTo, recurseThroughRe, haveWeRepliedHere, haveWePostedHere, smallify, bulletify, numberify, Inbox, subreddit, username, inbox, sameLength, substr, spoiler, secretMessage, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   request = require('request');
-  ref$ = require('./core'), settings = ref$.settings, repeatFn = ref$.repeatFn, haveWeRepliedHere = ref$.haveWeRepliedHere, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, recurseThroughRe = ref$.recurseThroughRe, haveWePostedHere = ref$.haveWePostedHere;
+  ref$ = require('./core'), settings = ref$.settings, repeatFn = ref$.repeatFn, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, recurseThroughRe = ref$.recurseThroughRe, haveWeRepliedHere = ref$.haveWeRepliedHere, haveWePostedHere = ref$.haveWePostedHere;
   ref$ = require('./strings'), smallify = ref$.smallify, bulletify = ref$.bulletify, numberify = ref$.numberify;
   Inbox = require('./mail');
   settings = settings.modules.bailiff;
@@ -200,14 +200,14 @@
       }
     });
   };
-  submitEvidenceToArchive = function(post, cb){
+  submitEvidenceToArchive = curry$(function(post, cb){
     var getRedirectLinkFrom, selftext;
     cb == null && (cb = id);
     getRedirectLinkFrom = function(bod){
       return /document\.location\.replace\("(.+)"\)},1000\)/.exec(bod)[1];
     };
     selftext = post.selftext;
-    return haveWePostedHere(post, function(weHave){
+    return haveWePostedHere(post, '', function(weHave){
       var evidence, archivedEvidence, i$, len$, results$ = [];
       if (weHave) {
         return;
@@ -229,10 +229,10 @@
         };
         return request.post(params, function(err, res, bod){
           if (err || !res) {
-            return say("Something went wrong, submit-evidence-to-archive");
+            return say('Something went wrong, submitEvidenceToArchive');
           }
           if (res.statusCode !== 200) {
-            say(("Something went wrong: " + res.statusCode + ",") + " submit-evidence-to-archive");
+            say(("Something went wrong: " + res.statusCode + ",") + ' submitEvidenceToArchive');
             return;
           }
           archivedEvidence.push(getRedirectLinkFrom(bod));
@@ -242,7 +242,7 @@
         });
       }
     });
-  };
+  });
   getEvidenceFrom = function(selftext){
     var rx, evidence;
     rx = /^\[EXHIBIT [A-Z]{1}\]\((.+)\)/gm;

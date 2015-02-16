@@ -1,3 +1,15 @@
+## This module is for use in /r/KarmaCourt. It has two functions, 1) serving
+## as an archivist of evidence and 2) summoning defendants.
+## Purpose 1 is automatic, it requires no interaction from the master.
+## Purpose 2 is interactive. The bot must be summoned from a list of acceptable
+## phrases, plus a username mention. It will then get the defendants from
+## the title of the post and the charges from the selftext, and create a reply
+## to your summon asking whether it got the case info correct. Then you reply
+## to that post with one of a set list of confirmations ('yes' is enough),
+## and the bot will message each defendant with a list of charges brought
+## against them, a link to the case, and some references to the constitution.
+#
+#
 ## requirements
 global <<< require 'prelude-ls'
 require! {
@@ -5,7 +17,6 @@ require! {
   './core': {
     settings
     repeat-fn
-    have-we-replied-here
     recipient
     robot
     say
@@ -13,6 +24,7 @@ require! {
     send-pm
     reply-to
     recurse-through-re
+    have-we-replied-here
     have-we-posted-here
   }
   './strings': {smallify, bulletify, numberify}
@@ -255,7 +267,7 @@ check-case = (pm) ->
 ## ARCHIVIST
 ## ---------
 
-submit-evidence-to-archive = (post, cb = id) ->
+submit-evidence-to-archive = (post, cb = id) -->
 
   ## get the link of the archived evidence
   get-redirect-link-from = (bod) ->
@@ -263,7 +275,7 @@ submit-evidence-to-archive = (post, cb = id) ->
 
   selftext = post.selftext
 
-  (we-have) <- have-we-posted-here post
+  (we-have) <- have-we-posted-here post, ''
   if we-have => return
 
   evidence = get-evidence-from selftext
@@ -277,10 +289,10 @@ submit-evidence-to-archive = (post, cb = id) ->
         url: url
     request.post params, (err, res, bod) ->
       if err or not res
-        return say "Something went wrong, submit-evidence-to-archive"
+        return say 'Something went wrong, submitEvidenceToArchive'
       if res.status-code isnt 200
         say "Something went wrong: #{res.status-code}," +
-          " submit-evidence-to-archive"
+          ' submitEvidenceToArchive'
         return
       archived-evidence.push get-redirect-link-from bod
       ## we don't finish until the last evidence has been archived

@@ -1,7 +1,7 @@
 (function(){
-  var ref$, settings, recipient, say, robot, repeatFn, simplifyListing, sendPm, commitArrayToDb, subs, cycleTime, username, flag, rxs, res$, i$, len$, term, search, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatTitleSearch, slice$ = [].slice;
+  var ref$, settings, recipient, say, robot, repeatFn, simplifyListing, sendPm, subs, cycleTime, username, flag, rxs, res$, i$, len$, term, search, substr, sendNotification, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatCommentsSearch2, repeatTitleSearch, slice$ = [].slice;
   import$(global, require('prelude-ls'));
-  ref$ = require('./core'), settings = ref$.settings, recipient = ref$.recipient, say = ref$.say, robot = ref$.robot, repeatFn = ref$.repeatFn, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, commitArrayToDb = ref$.commitArrayToDb;
+  ref$ = require('./core'), settings = ref$.settings, recipient = ref$.recipient, say = ref$.say, robot = ref$.robot, repeatFn = ref$.repeatFn, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm;
   settings = settings.modules.search;
   subs = settings.subreddits;
   cycleTime = settings.cycle_time || 60000;
@@ -42,9 +42,9 @@
     }
     subs.forEach(function(sub){
       return robot.get("/r/" + sub + "/" + urlParam + ".json", params, function(err, res, bod){
-        var parsedText;
+        var parsedText, params;
         if (err || !res) {
-          return say("Error: search");
+          return say('Error: search');
         }
         if (res.statusCode !== 200) {
           return say("Error: " + res.statusCode + ", search");
@@ -54,13 +54,48 @@
         bod));
         cb(parsedText);
         if (recurse) {
-          return search({
+          params = {
             after: JSON.parse(bod).data.after,
             urlParam: urlParam,
             textProperty: textProperty
-          }, cb);
+          };
+          return search(params, cb);
         }
       });
+    });
+  });
+  substr = curry$(function(sub, str){
+    return new RegExp(sub).test(str);
+  });
+  sendNotification = curry$(function(list, cb){
+    cb == null && (cb = id);
+    return robot.get('/messages/sent.json', {
+      limit: 100
+    }, function(err, res, bod){
+      var pmBodies, ids, notifiedTest, notifiedBooleans, notificationPairs, toUpdate;
+      if (err || !res) {
+        return say('Error: sendNotification2');
+      }
+      if (res.statusCode !== 200) {
+        return say("Error: " + res.statusCode + ", sendNotification2");
+      }
+      pmBodies = map(function(it){
+        return it.body;
+      })(
+      simplifyListing(
+      bod));
+      ids = map(function(it){
+        return it.id;
+      }, list);
+      notifiedTest = function(id){
+        return any(substr(id), pmBodies);
+      };
+      notifiedBooleans = map(notifiedTest, listIds);
+      notificationPairs = zip(list, notifiedBooleans);
+      toUpdate = reject(function(it){
+        return it[1];
+      }, notificationPairs);
+      return pmUpdates(toUpdate);
     });
   });
   searchSelfTexts = search({
@@ -128,6 +163,9 @@
       return commitArrayToDb(comments, 'mentions', pmUpdates);
     });
   };
+  repeatCommentsSearch2 = function(){
+    return repeatFn(cycleTime, searchComments, 'commentsSearch', sendNotification);
+  };
   repeatTitleSearch = function(){
     return repeatFn(cycleTime, searchTitles, 'titles-search', function(titles){
       return commitArrayToDb(titles, 'mentions', pmUpdates);
@@ -135,6 +173,7 @@
   };
   module.exports = {
     commentsSearch: repeatCommentsSearch,
+    commentsSearch2: repeatCommentsSearch2,
     selfTextsSearch: repeatSelfTextsSearch,
     titlesSearch: repeatTitleSearch
   };

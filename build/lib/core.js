@@ -1,5 +1,5 @@
 (function(){
-  var Jaraw, path, minimist, dbLib, argv, settingsPath, settings, dbName, ref$, getElementFromDb, checkIfElementInDb, commitArrayToDb, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, repeatFn2, recurseThroughRe, JSONparse, simplifyListing, haveWePostedHere, haveWeRepliedHere, replyTo, sendPm, slice$ = [].slice, toString$ = {}.toString;
+  var Jaraw, path, minimist, dbLib, argv, settingsPath, settings, dbName, ref$, getElementFromDb, checkIfElementInDb, commitArrayToDb, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, repeatFn2, recurseThroughRe, JSONparse, simplifyListing, haveWePostedHere, haveWeRepliedHere, replyTo, sendPm, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
   path = require('path');
@@ -98,10 +98,7 @@
     return it.data;
   }));
   haveWePostedHere = curry$(function(link, identifier, cb){
-    var ref$, theLink, params, callback;
-    if (toString$.call(identifier).slice(8, -1) === 'Function') {
-      ref$ = [identifier, ''], cb = ref$[0], identifier = ref$[1];
-    }
+    var theLink, params, callback;
     theLink = "/r/" + link.subreddit + "/comments/" + link.id + ".json";
     params = {
       depth: 20,
@@ -159,10 +156,10 @@
     callback = function(err, res, bod){
       var repliesListing, replies;
       if (err || !res) {
-        return say('Error: have-we-replied-here');
+        return say('Error: haveWeRepliedHere');
       }
       if (res.statusCode !== 200) {
-        return say("Error: " + res.statusCode + ", have-we-replied-here");
+        return say("Error: " + res.statusCode + ", haveWeRepliedHere");
       }
       repliesListing = function(it){
         return it[0].replies;
