@@ -10,3 +10,5 @@ TAGS
 processes.json
 *.tags
 .nvmrc
+Procfile
+.env
