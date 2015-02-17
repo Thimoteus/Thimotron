@@ -43,6 +43,8 @@
   secret = settings.oauth.client_secret;
   recipient = settings.info.author;
   talkative = settings.verbose;
+  console.log(settings.modules.search);
+  throw new Error("ouch");
   robot = new Jaraw({
     type: 'script',
     login: {
