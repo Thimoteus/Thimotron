@@ -1,5 +1,5 @@
 (function(){
-  var ref$, settings, recipient, say, robot, repeatFn, simplifyListing, sendPm, subs, cycleTime, username, flag, rxs, res$, i$, len$, term, search, substr, sendNotification, searchSelfTexts, searchComments, searchTitles, pmUpdates, repeatSelfTextsSearch, repeatCommentsSearch, repeatCommentsSearch2, repeatTitleSearch, slice$ = [].slice;
+  var ref$, settings, recipient, say, robot, repeatFn, simplifyListing, sendPm, subs, cycleTime, username, flag, rxs, res$, i$, len$, term, search, substr, sendNotification, searchSelfTexts, searchComments, searchTitles, pmUpdates, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   ref$ = require('./core'), settings = ref$.settings, recipient = ref$.recipient, say = ref$.say, robot = ref$.robot, repeatFn = ref$.repeatFn, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm;
   settings = settings.modules.search;
@@ -67,9 +67,9 @@
   substr = curry$(function(sub, str){
     return new RegExp(sub).test(str);
   });
-  sendNotification = curry$(function(list, cb){
+  sendNotification = function(list, cb){
     cb == null && (cb = id);
-    return robot.get('/messages/sent.json', {
+    return robot.get('/message/sent.json', {
       limit: 100
     }, function(err, res, bod){
       var pmBodies, ids, notifiedTest, notifiedBooleans, notificationPairs, toUpdate;
@@ -90,14 +90,21 @@
       notifiedTest = function(id){
         return any(substr(id), pmBodies);
       };
-      notifiedBooleans = map(notifiedTest, listIds);
+      notifiedBooleans = map(notifiedTest, ids);
       notificationPairs = zip(list, notifiedBooleans);
       toUpdate = reject(function(it){
         return it[1];
       }, notificationPairs);
+      toUpdate = map(function(it){
+        return it[0];
+      })(
+      reject(function(it){
+        return it[1];
+      })(
+      notificationPairs));
       return pmUpdates(toUpdate);
     });
-  });
+  };
   searchSelfTexts = search({
     urlParam: 'new',
     textProperty: 'selftext'
@@ -153,29 +160,16 @@
     msg += "\n\nThis has been a service by " + username + ".";
     return sendPm("Someone mentioned " + keyword, msg, recipient);
   };
-  repeatSelfTextsSearch = function(){
-    return repeatFn(cycleTime, searchSelfTexts, 'self-texts-search', function(posts){
-      return commitArrayToDb(posts, 'mentions', pmUpdates);
-    });
-  };
-  repeatCommentsSearch = function(){
-    return repeatFn(cycleTime, searchComments, 'comments-search', function(comments){
-      return commitArrayToDb(comments, 'mentions', pmUpdates);
-    });
-  };
-  repeatCommentsSearch2 = function(){
-    return repeatFn(cycleTime, searchComments, 'commentsSearch', sendNotification);
-  };
-  repeatTitleSearch = function(){
-    return repeatFn(cycleTime, searchTitles, 'titles-search', function(titles){
-      return commitArrayToDb(titles, 'mentions', pmUpdates);
-    });
-  };
   module.exports = {
-    commentsSearch: repeatCommentsSearch,
-    commentsSearch2: repeatCommentsSearch2,
-    selfTextsSearch: repeatSelfTextsSearch,
-    titlesSearch: repeatTitleSearch
+    commentsSearch: function(){
+      return repeatFn(cycleTime, searchComments, 'commentsSearch', sendNotification);
+    },
+    selfTextsSearch: function(){
+      return repeatFn(cycleTime, searchSelfTexts, 'selfTextsSearch', sendNotification);
+    },
+    titlesSearch: function(){
+      return repeatFn(cycleTime, searthTitles, 'titlesSearch', sendNotification);
+    }
   };
   function import$(obj, src){
     var own = {}.hasOwnProperty;

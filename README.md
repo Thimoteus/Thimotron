@@ -5,8 +5,7 @@ A reddit bot to do my bidding.
 ## Usage
 
 1. You must have iojs or node (>= 0.10) installed.
-2. You must have mongodb installed and running first.
-3. Fill in `example-settings.json` with real values and rename it to `settings.json`.
+2. Fill in `example-settings.json` with real values and rename it to `settings.json`.
 
 ```bash
 npm install

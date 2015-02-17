@@ -1,17 +1,14 @@
 (function(){
-  var Jaraw, path, minimist, dbLib, argv, settingsPath, settings, dbName, ref$, getElementFromDb, checkIfElementInDb, commitArrayToDb, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, repeatFn2, recurseThroughRe, JSONparse, simplifyListing, haveWePostedHere, haveWeRepliedHere, replyTo, sendPm, slice$ = [].slice;
+  var Jaraw, path, minimist, argv, settingsPath, settings, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, repeatFn2, recurseThroughRe, JSONparse, simplifyListing, haveWePostedHere, haveWeRepliedHere, replyTo, sendPm, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
   path = require('path');
   minimist = require('minimist');
-  dbLib = require('./db');
   argv = minimist(process.argv);
   settingsPath = argv.settings
     ? path.resolve(__dirname, '../../', argv.settings)
     : path.resolve(__dirname, '../../settings.json');
   settings = require(settingsPath);
-  dbName = settings.db.name || 'bot';
-  ref$ = dbLib(dbName), getElementFromDb = ref$.getElementFromDb, checkIfElementInDb = ref$.checkIfElementInDb, commitArrayToDb = ref$.commitArrayToDb;
   userAgent = settings.info.name + "@" + (settings.info.version || '1.0.0') + " by " + (settings.info.author || '');
   username = settings.login.username;
   password = settings.login.password;
@@ -225,16 +222,13 @@
     recipient: recipient,
     sendPm: sendPm,
     replyTo: replyTo,
-    commitArrayToDb: commitArrayToDb,
     recurseThroughRe: recurseThroughRe,
     simplifyListing: simplifyListing,
     repeatFn: repeatFn,
     say: say,
     robot: robot,
-    checkIfElementInDb: checkIfElementInDb,
     haveWePostedHere: haveWePostedHere,
-    haveWeRepliedHere: haveWeRepliedHere,
-    getElementFromDb: getElementFromDb
+    haveWeRepliedHere: haveWeRepliedHere
   };
   function import$(obj, src){
     var own = {}.hasOwnProperty;
