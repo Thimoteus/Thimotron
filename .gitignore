@@ -5,3 +5,4 @@ settings.json
 tags
 TAGS
 *.tags
+node_modules

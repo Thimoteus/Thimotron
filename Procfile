@@ -1,1 +1,1 @@
-worker: ./node_modules/pm2/bin/pm2 start ./processes.json
+worker: node build/index.js
