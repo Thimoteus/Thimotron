@@ -1,10 +1,8 @@
 (function(){
-  var Jaraw, path, minimist, argv, settings, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, repeatFn2, recurseThroughRe, JSONparse, simplifyListing, haveWePostedHere, haveWeRepliedHere, replyTo, sendPm, slice$ = [].slice;
+  var Jaraw, path, settings, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, repeatFn2, recurseThroughRe, JSONparse, simplifyListing, haveWePostedHere, haveWeRepliedHere, replyTo, sendPm, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
   path = require('path');
-  minimist = require('minimist');
-  argv = minimist(process.argv);
   settings = {
     info: {
       name: process.env.BOTNAME,
