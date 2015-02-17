@@ -3,6 +3,8 @@
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
   path = require('path');
+  console.log(process.env.SEARCHSUBREDDITS);
+  throw new Error("ouch");
   settings = {
     info: {
       name: process.env.BOTNAME,
@@ -43,8 +45,6 @@
   secret = settings.oauth.client_secret;
   recipient = settings.info.author;
   talkative = settings.verbose;
-  console.log(settings.modules.search);
-  throw new Error("ouch");
   robot = new Jaraw({
     type: 'script',
     login: {

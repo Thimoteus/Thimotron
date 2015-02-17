@@ -4,6 +4,9 @@ require! {
   'path': path
 }
 
+console.log process.env.SEARCHSUBREDDITS
+throw new Error "ouch"
+
 settings =
   info:
     name: process.env.BOTNAME
@@ -38,8 +41,6 @@ secret = settings.oauth.client_secret
 recipient = settings.info.author
 talkative = settings.verbose
 
-console.log settings.modules.search
-throw new Error "ouch"
 ## Jaraw lets us access the reddit API
 ## with a minimum of hassle.
 robot = new Jaraw do
