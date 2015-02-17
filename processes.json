@@ -1,0 +1,6 @@
+{
+  "name": "thimotron",
+  "script": "./build/index.js",
+  "max_memory_restart": "100M"
+}
+

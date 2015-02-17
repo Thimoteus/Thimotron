@@ -1,12 +1,7 @@
-node_modules
-data
 settings.json
-log.txt
 .exrc
 *.swp
 *.swo
 tags
 TAGS
-processes.json
 *.tags
-.nvmrc

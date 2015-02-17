@@ -3,7 +3,6 @@ require! {
   'jaraw': Jaraw
   'path': path
   'minimist': minimist
-  #'./db': db-lib
 }
 argv = minimist process.argv
 
@@ -13,20 +12,13 @@ else
    path.resolve __dirname, '../../settings.json'
 settings = require settings-path
 
-#db-name = settings.db.name or 'bot'
-#{
-#  get-element-from-db
-#  check-if-element-in-db
-#  commit-array-to-db
-#} = db-lib db-name
-
-user-agent = "#{settings.info.name}@#{settings.info.version or '1.0.0'} by #{settings.info.author or ''}"
-username = settings.login.username
-password = settings.login.password
-client-id = settings.oauth.client_id
-secret = settings.oauth.client_secret
-recipient = settings.recipient
-talkative = settings.verbose or false
+user-agent = "#{process.env.BOTNAME}@#{process.env.BOTVERSION or '1.0.0'} by #{process.env.BOTMASTER or ''}"
+username = process.env.USERNAME
+password = process.env.PASSWORD
+client-id = process.env.CLIENTID
+secret = process.env.CLIENTSECRET
+recipient = process.env.BOTMASTER
+talkative = process.env.VERBOSE
 
 ## Jaraw lets us access the reddit API
 ## with a minimum of hassle.
