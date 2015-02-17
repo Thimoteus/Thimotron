@@ -2,10 +2,7 @@ global <<< require 'prelude-ls'
 require! {
   'jaraw': Jaraw
   'path': path
-  'minimist': minimist
 }
-argv = minimist process.argv
-
 
 settings =
   info:
