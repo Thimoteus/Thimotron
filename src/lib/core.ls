@@ -6,12 +6,6 @@ require! {
 }
 argv = minimist process.argv
 
-settings-path = if argv.settings
-   path.resolve __dirname, '../../', argv.settings
-else
-   path.resolve __dirname, '../../settings.json'
-settings = require settings-path
-
 user-agent = "#{process.env.BOTNAME}@#{process.env.BOTVERSION or '1.0.0'} by #{process.env.BOTMASTER or ''}"
 username = process.env.USERNAME
 password = process.env.PASSWORD
