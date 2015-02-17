@@ -6,3 +6,4 @@ tags
 TAGS
 *.tags
 node_modules
+.env

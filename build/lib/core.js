@@ -22,18 +22,18 @@
     modules: {
       run: words(process.env.MODULES),
       bailiff: {
-        cycle_time: process.env.BAILIFFCYCLETIME,
+        cycle_time: parseInt(process.env.BAILIFFCYCLETIME),
         subreddit: process.env.BAILIFFSUBREDDIT
       },
       search: {
-        cycle_time: process.env.SEARCHCYCLETIME,
+        cycle_time: parseInt(process.env.SEARCHCYCLETIME),
         subreddits: words(process.env.SEARCHSUBREDDITS),
         search_terms: words(process.env.SEARCHTERMS),
         ignore_case: true
       },
       postman: {
-        max: process.env.POSTMANMAX,
-        cycle_time: process.env.POSTMANCYCLETIME
+        max: parseInt(process.env.POSTMANMAX),
+        cycle_time: parseInt(process.env.POSTMANCYCLETIME)
       }
     },
     verbose: true
