@@ -1,21 +1,50 @@
 (function(){
-  var Jaraw, path, minimist, argv, settingsPath, settings, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, repeatFn2, recurseThroughRe, JSONparse, simplifyListing, haveWePostedHere, haveWeRepliedHere, replyTo, sendPm, slice$ = [].slice;
+  var Jaraw, path, minimist, argv, settings, userAgent, username, password, clientId, secret, recipient, talkative, robot, say, login, repeatFn, repeatFn2, recurseThroughRe, JSONparse, simplifyListing, haveWePostedHere, haveWeRepliedHere, replyTo, sendPm, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
   path = require('path');
   minimist = require('minimist');
   argv = minimist(process.argv);
-  settingsPath = argv.settings
-    ? path.resolve(__dirname, '../../', argv.settings)
-    : path.resolve(__dirname, '../../settings.json');
-  settings = require(settingsPath);
+  settings = {
+    info: {
+      name: process.env.BOTNAME,
+      author: process.env.BOTMASTER,
+      version: process.env.BOTVERSION
+    },
+    login: {
+      username: process.env.USERNAME,
+      password: process.env.PASSWORD
+    },
+    oauth: {
+      client_id: process.env.CLIENTID,
+      client_secret: process.env.CLIENTSECRET
+    },
+    modules: {
+      run: words(process.env.MODULES),
+      bailiff: {
+        cycle_time: process.env.BAILIFFCYCLETIME,
+        subreddit: process.env.BAILIFFSUBREDDIT
+      },
+      search: {
+        cycle_time: process.env.SEARCHCYCLETIME,
+        subreddits: words(process.env.SEARCHSUBREDDITS),
+        search_terms: words(process.env.SEARCHTERMS),
+        ignore_case: true
+      },
+      postman: {
+        max: process.env.POSTMANMAX,
+        cycle_time: process.env.POSTMANCYCLETIME
+      }
+    },
+    verbose: true
+  };
   userAgent = settings.info.name + "@" + (settings.info.version || '1.0.0') + " by " + (settings.info.author || '');
   username = settings.login.username;
   password = settings.login.password;
   clientId = settings.oauth.client_id;
   secret = settings.oauth.client_secret;
-  recipient = settings.recipient;
-  talkative = settings.verbose || false;
+  recipient = settings.info.author;
+  talkative = settings.verbose;
   robot = new Jaraw({
     type: 'script',
     login: {

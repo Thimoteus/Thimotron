@@ -6,13 +6,40 @@ require! {
 }
 argv = minimist process.argv
 
-user-agent = "#{process.env.BOTNAME}@#{process.env.BOTVERSION or '1.0.0'} by #{process.env.BOTMASTER or ''}"
-username = process.env.USERNAME
-password = process.env.PASSWORD
-client-id = process.env.CLIENTID
-secret = process.env.CLIENTSECRET
-recipient = process.env.BOTMASTER
-talkative = process.env.VERBOSE
+
+settings =
+  info:
+    name: process.env.BOTNAME
+    author: process.env.BOTMASTER
+    version: process.env.BOTVERSION
+  login:
+    username: process.env.USERNAME
+    password: process.env.PASSWORD
+  oauth:
+    client_id: process.env.CLIENTID
+    client_secret: process.env.CLIENTSECRET
+  modules:
+    run: words process.env.MODULES
+    bailiff:
+      cycle_time: process.env.BAILIFFCYCLETIME
+      subreddit: process.env.BAILIFFSUBREDDIT
+    search:
+      cycle_time: process.env.SEARCHCYCLETIME
+      subreddits: words process.env.SEARCHSUBREDDITS
+      search_terms: words process.env.SEARCHTERMS
+      ignore_case: true
+    postman:
+      max: process.env.POSTMANMAX
+      cycle_time: process.env.POSTMANCYCLETIME
+  verbose: true
+
+user-agent = "#{settings.info.name}@#{settings.info.version or '1.0.0'} by #{settings.info.author or ''}"
+username = settings.login.username
+password = settings.login.password
+client-id = settings.oauth.client_id
+secret = settings.oauth.client_secret
+recipient = settings.info.author
+talkative = settings.verbose
 
 ## Jaraw lets us access the reddit API
 ## with a minimum of hassle.
@@ -185,6 +212,3 @@ module.exports =
   robot: robot
   have-we-posted-here: have-we-posted-here
   have-we-replied-here: have-we-replied-here
-  #check-if-element-in-db: check-if-element-in-db
-  #get-element-from-db: get-element-from-db
-  #commit-array-to-db: commit-array-to-db
