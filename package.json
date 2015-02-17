@@ -10,9 +10,7 @@
   },
   "dependencies": {
     "jaraw": "^0.2.1-beta1",
-    "minimist": "^1.1.0",
     "modular-bot": "^1.0.1",
-    "mongojs": "^0.18.1",
     "prelude-ls": "^1.1.1",
     "request": "^2.51.0"
   },
