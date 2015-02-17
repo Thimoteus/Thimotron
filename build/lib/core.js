@@ -3,8 +3,6 @@
   import$(global, require('prelude-ls'));
   Jaraw = require('jaraw');
   path = require('path');
-  console.log(process.env.SEARCHSUBREDDITS);
-  throw new Error("ouch");
   settings = {
     info: {
       name: process.env.BOTNAME,

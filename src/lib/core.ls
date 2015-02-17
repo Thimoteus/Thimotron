@@ -4,9 +4,6 @@ require! {
   'path': path
 }
 
-console.log process.env.SEARCHSUBREDDITS
-throw new Error "ouch"
-
 settings =
   info:
     name: process.env.BOTNAME
