@@ -48,12 +48,12 @@ secret-message = (str) -> "[](\##str)"
 roles =
   * "the guy who plays AC/DC in the back of the room," +
     " not paying attention to the trial."
-  * "Zoidberg (\/)(°,,,°)(\/)"
+  * "Zoidberg (\\/)(°,,,°)(\\/)"
   * "the guy who gasps at the inhumanity ⊙▃⊙"
   * "the guy who stands in the back," +
     " wearing sunglasses and saying nothing (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄"
   * "a teddy bear! ʕ´•ᴥ•`ʔ"
-  * "Homer J. Simpson ~(8 ^(| )"
+  * "Homer J. Simpson ~(8 &\#94;(| )"
   * "sitting in the corner, not doing anything, not doing anything at all ..."
   * "Groot. **I AM GROOT.**"
   * "the guy who sells combination Indian/Pakistani/Mexican food." +
