@@ -221,7 +221,7 @@
         }
         return results$;
       } else {
-        sign = smallify2(5)("I'm a bot, this action was done automatically as a reminder of KarmaCourt's principles.");
+        sign = smallify2(5)("I'm a bot by /u/" + recipient + ". This action was done automatically as a reminder of KarmaCourt's principles.");
         msg = "" + disclaimer + "\n\n---\n\n" + sign;
         return replyTo(post.name, msg);
       }
@@ -260,11 +260,11 @@
     var my, role, declare, renderedEvidence, signature, msg;
     my = spoiler("I'll be", "IAMA BOT, AMA");
     role = getRandomElementFrom(roles);
-    declare = smallify(5)(['The', 'following', 'is', 'an', 'archive', 'of', 'the', 'evidence:']);
+    declare = smallify2(5)('The following is an archive of the evidence:');
     renderedEvidence = smallify(5)(
     numberify(
     archive));
-    signature = smallify(5)(['This', 'bot', 'by', "/u/" + recipient + ".", 'Code', 'viewable', 'at', "github.com/" + recipient + "/" + username]);
+    signature = smallify2(5)("I'm a bot by /u/" + recipient + ". Code viewable at github.com/" + recipient + "/" + username);
     msg = "" + disclaimer + "\n\n**Mandatory bot participation message:** " + my + " " + role + "\n\n" + declare + " " + renderedEvidence + " " + signature;
     return replyTo(post.name, msg);
   };
