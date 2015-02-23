@@ -27,7 +27,7 @@ require! {
     have-we-replied-here
     have-we-posted-here
   }
-  './strings': {smallify, bulletify, numberify}
+  './strings': {smallify, smallify2, bulletify, numberify}
   './mail': Inbox
 }
 settings = settings.modules.bailiff
@@ -45,7 +45,8 @@ spoiler = (link, spoiler) -> "[#link](\#s '#spoiler')"
 secret-message = (str) -> "[](\##str)"
 
 disclaimer = """
-THIS IS A DISCLAIMER
+**Reminder:** This is a [no-downvote zone](https://www.reddit.com/r/KarmaCourt/wiki/constitution\#wiki_article_vi._the_bill_of_rights)!
+Also, Karma Court is [funny satire](https://www.reddit.com/r/KarmaCourt/wiki/constitution\#wiki_article_iv._karmacourt_is_funny_satire).
 """
 
 ## some people hate bots, so this humanizes it a little bit
@@ -302,7 +303,15 @@ submit-evidence-to-archive = (post, cb = id) -->
       ## we don't finish until the last evidence has been archived
       if archived-evidence `same-length` evidence => cb archived-evidence
   else
-    reply-to post.name, disclaimer
+    sign = smallify2(5) "I'm a bot, this action was done automatically as a reminder of KarmaCourt's principles."
+    msg = """
+    #disclaimer
+
+    ---
+
+    #sign
+    """
+    reply-to post.name, msg
 
 
 get-evidence-from = (selftext) ->
@@ -329,7 +338,7 @@ report-evidence-to-court = (archive, post) ->
   msg = """
   #disclaimer
 
-  #my #role
+  **Mandatory bot participation message:** #my #role
 
   #declare #rendered-evidence #signature
   """
