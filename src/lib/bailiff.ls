@@ -44,6 +44,10 @@ spoiler = (link, spoiler) -> "[#link](\#s '#spoiler')"
 
 secret-message = (str) -> "[](\##str)"
 
+disclaimer = """
+THIS IS A DISCLAIMER
+"""
+
 ## some people hate bots, so this humanizes it a little bit
 roles =
   * "the guy who plays AC/DC in the back of the room," +
@@ -281,7 +285,7 @@ submit-evidence-to-archive = (post, cb = id) -->
   evidence = get-evidence-from selftext
   archived-evidence = []
 
-  for let url in evidence
+  if not empty evidence then for let url in evidence
     say "making request to archive.today"
     params =
       url: 'https://archive.today/submit/'
@@ -297,6 +301,9 @@ submit-evidence-to-archive = (post, cb = id) -->
       archived-evidence.push get-redirect-link-from bod
       ## we don't finish until the last evidence has been archived
       if archived-evidence `same-length` evidence => cb archived-evidence
+  else
+    reply-to post.name, disclaimer
+
 
 get-evidence-from = (selftext) ->
   rx = /^\[EXHIBIT [A-Z]{1}\]\((.+)\)/gm
@@ -320,6 +327,8 @@ report-evidence-to-court = (archive, post) ->
   ]
 
   msg = """
+  #disclaimer
+
   #my #role
 
   #declare #rendered-evidence #signature

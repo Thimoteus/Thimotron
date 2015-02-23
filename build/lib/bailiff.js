@@ -1,5 +1,5 @@
 (function(){
-  var request, ref$, settings, repeatFn, recipient, robot, say, simplifyListing, sendPm, replyTo, recurseThroughRe, haveWeRepliedHere, haveWePostedHere, smallify, bulletify, numberify, Inbox, subreddit, username, inbox, sameLength, substr, spoiler, secretMessage, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
+  var request, ref$, settings, repeatFn, recipient, robot, say, simplifyListing, sendPm, replyTo, recurseThroughRe, haveWeRepliedHere, haveWePostedHere, smallify, bulletify, numberify, Inbox, subreddit, username, inbox, sameLength, substr, spoiler, secretMessage, disclaimer, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   request = require('request');
   ref$ = require('./core'), settings = ref$.settings, repeatFn = ref$.repeatFn, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, recurseThroughRe = ref$.recurseThroughRe, haveWeRepliedHere = ref$.haveWeRepliedHere, haveWePostedHere = ref$.haveWePostedHere;
@@ -23,6 +23,7 @@
   secretMessage = function(str){
     return "[](#" + str + ")";
   };
+  disclaimer = "THIS IS A DISCLAIMER";
   roles = ["the guy who plays AC/DC in the back of the room," + " not paying attention to the trial.", "Zoidberg (\\/)(°,,,°)(\\/)", "the guy who gasps at the inhumanity ⊙▃⊙", "the guy who stands in the back," + " wearing sunglasses and saying nothing (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄", "a teddy bear! ʕ´•ᴥ•`ʔ", "Homer J. Simpson ~(8 &#94;(| )", "sitting in the corner, not doing anything, not doing anything at all ...", "Groot. **I AM GROOT.**", "the guy who sells combination Indian/Pakistani/Mexican food." + " But only dishes that combine all three.", "the world's smallest violinist, playing the world's largest violin ♫", "someone who tells you how good cake is," + " while his mouth is full of cake. MM, MM.", "Maximus Decimus Meridius," + " father to a murdered son, husband to a murdered wife." + " And I will have my vengeance, in this life or the next.", "the guy who [spoils](#s 'Snape kills Dumbledore') Harry Potter.", "the guy who [spoils](#s 'Jesus dies') Passion of the Christ.", "the guy who [spoils](#s 'Darth Vader is Luke's father') Star Wars."];
   getRandomElementFrom = function(list){
     var ind;
@@ -214,10 +215,14 @@
       }
       evidence = getEvidenceFrom(selftext);
       archivedEvidence = [];
-      for (i$ = 0, len$ = evidence.length; i$ < len$; ++i$) {
-        results$.push((fn$.call(this, evidence[i$])));
+      if (!empty(evidence)) {
+        for (i$ = 0, len$ = evidence.length; i$ < len$; ++i$) {
+          results$.push((fn$.call(this, evidence[i$])));
+        }
+        return results$;
+      } else {
+        return replyTo(post.name, disclaimer);
       }
-      return results$;
       function fn$(url){
         var params;
         say("making request to archive.today");
@@ -258,7 +263,7 @@
     numberify(
     archive));
     signature = smallify(5)(['This', 'bot', 'by', "/u/" + recipient + ".", 'Code', 'viewable', 'at', "github.com/" + recipient + "/" + username]);
-    msg = "" + my + " " + role + "\n\n" + declare + " " + renderedEvidence + " " + signature;
+    msg = "" + disclaimer + "\n\n" + my + " " + role + "\n\n" + declare + " " + renderedEvidence + " " + signature;
     return replyTo(post.name, msg);
   };
   processCases = function(){
