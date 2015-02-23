@@ -304,6 +304,7 @@ submit-evidence-to-archive = (post, cb = id) -->
       if archived-evidence `same-length` evidence => cb archived-evidence
   else
     sign = smallify2(5) "I'm a bot by /u/#recipient. This action was done automatically as a reminder of KarmaCourt's principles."
+    sign = "[#sign](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)"
     msg = """
     #disclaimer
 
@@ -320,16 +321,16 @@ get-evidence-from = (selftext) ->
   return evidence
 
 report-evidence-to-court = (archive, post) ->
-  my = spoiler "I'll be" "IAMA BOT, AMA"
   role = get-random-element-from roles
   declare = smallify2(5) 'The following is an archive of the evidence:'
   rendered-evidence = archive |> numberify |> smallify(5)
   signature = smallify2(5) "I'm a bot by /u/#recipient. Code viewable at github.com/#recipient/#username"
+  signature = "[#signature](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)"
 
   msg = """
   #disclaimer
 
-  **Mandatory bot participation message:** #my #role
+  **Mandatory bot participation message:** I'll be #role
 
   #declare #rendered-evidence #signature
   """

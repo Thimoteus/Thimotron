@@ -222,6 +222,7 @@
         return results$;
       } else {
         sign = smallify2(5)("I'm a bot by /u/" + recipient + ". This action was done automatically as a reminder of KarmaCourt's principles.");
+        sign = "[" + sign + "](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)";
         msg = "" + disclaimer + "\n\n---\n\n" + sign;
         return replyTo(post.name, msg);
       }
@@ -257,15 +258,15 @@
     return evidence;
   };
   reportEvidenceToCourt = function(archive, post){
-    var my, role, declare, renderedEvidence, signature, msg;
-    my = spoiler("I'll be", "IAMA BOT, AMA");
+    var role, declare, renderedEvidence, signature, msg;
     role = getRandomElementFrom(roles);
     declare = smallify2(5)('The following is an archive of the evidence:');
     renderedEvidence = smallify(5)(
     numberify(
     archive));
     signature = smallify2(5)("I'm a bot by /u/" + recipient + ". Code viewable at github.com/" + recipient + "/" + username);
-    msg = "" + disclaimer + "\n\n**Mandatory bot participation message:** " + my + " " + role + "\n\n" + declare + " " + renderedEvidence + " " + signature;
+    signature = "[" + signature + "](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)";
+    msg = "" + disclaimer + "\n\n**Mandatory bot participation message:** I'll be " + role + "\n\n" + declare + " " + renderedEvidence + " " + signature;
     return replyTo(post.name, msg);
   };
   processCases = function(){
