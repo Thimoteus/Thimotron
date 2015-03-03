@@ -9,7 +9,7 @@
     "url": "github.com:Thimoteus/Thimotron.git"
   },
   "dependencies": {
-    "jaraw": "^0.2.1-beta1",
+    "jaraw": "^0.2.2-beta1",
     "minimist": "^1.1.0",
     "modular-bot": "^1.0.1",
     "prelude-ls": "^1.1.1",
