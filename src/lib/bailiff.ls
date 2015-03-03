@@ -306,11 +306,11 @@ submit-evidence-to-archive = (post, cb = id) -->
     sign = smallify2(5) "I'm a bot by /u/#recipient. This action was done automatically as a reminder of KarmaCourt's principles."
     sign = "[#sign](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)"
     msg = """
-    ---
+    #&#009;
 
-    \#\#\#.
+    ###&#009;
 
-    \#.
+    #&#009;
 
     #disclaimer
 
@@ -334,15 +334,17 @@ report-evidence-to-court = (archive, post) ->
   signature = "[#signature](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)"
 
   msg = """
-  ---
+  #&#009;
 
-  \#\#\#.
+  ###&#009;
 
-  \#.
+  #&#009;
 
   #disclaimer
 
   **Mandatory bot participation message:** I'll be #role
+
+  ---
 
   #declare #rendered-evidence #signature
   """
