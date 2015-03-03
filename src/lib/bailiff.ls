@@ -49,6 +49,10 @@ disclaimer = """
 Also, Karma Court is [funny satire](https://www.reddit.com/r/KarmaCourt/wiki/constitution\#wiki_article_iv._karmacourt_is_funny_satire).
 """
 
+acceptable-responders =
+  * recipient
+  * 'TheGrandDalaiKarma'
+
 ## some people hate bots, so this humanizes it a little bit
 roles =
   * "the guy who plays AC/DC in the back of the room," +
@@ -172,7 +176,7 @@ check-mail = ->
     if res.status-code isnt 200 => return say "Error: #{res.status-code}, inbox.getReplies"
 
     ## someone responded to one of our comments, let's see if it confirmed the info we got
-    bod |> filter (.new) |> filter (.author is recipient) |> map confirm-case
+    bod |> filter (.new) |> filter (.author in acceptable-responders) |> map route-message # map confirm-case
 
 confirm-case = (reply) ->
 
@@ -269,8 +273,37 @@ check-case = (pm) ->
   else
     say 'bad defendants or charges'
 
+## MESSAGE ROUTING
+## -------------
+## Unfortunately only the summoner checks mail, but some people want the ability
+## remove archivist posts by response. Hence we need to reroute the appropriate
+## message replies to an archivist function that can check for deletion.
+
+route-message = (reply) ->
+  if reply.body is 'delete'
+    delete-archivist reply
+  else if reply.author is recipient
+    confirm-case reply
+  else
+    return
+
 ## ARCHIVIST
 ## ---------
+
+## We don't actually delete the message, because if we did then on the next
+## archivist cycle it would just get posted again.
+# FIXME: implement some kind of memory, using some kind of a database or shit.
+delete-archivist = (reply) ->
+  msg = """
+  **EDIT:** DISREGARD THIS MESSAGE I AM A STUPID BOT
+  """
+  opts =
+    api_type: 'json'
+    thing_id: reply.parent_id
+    text: msg
+  robot.post '/api/editusertext', opts
+  say "Editing #{reply.parent_id}"
+  inbox.read reply
 
 submit-evidence-to-archive = (post, cb = id) -->
 
