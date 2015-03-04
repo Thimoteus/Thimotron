@@ -225,7 +225,14 @@
     var getRedirectLinkFrom, selftext;
     cb == null && (cb = id);
     getRedirectLinkFrom = function(bod){
-      return /document\.location\.replace\("(.+)"\)},1000\)/.exec(bod)[1];
+      var ret, e;
+      try {
+        ret = /document\.location\.replace\("(.+)"\)},1000\)/.exec(bod)[1];
+        return ret;
+      } catch (e$) {
+        e = e$;
+        return '';
+      }
     };
     selftext = post.selftext;
     return haveWePostedHere(post, '', function(weHave){
@@ -283,7 +290,8 @@
     declare = smallify2(5)('The following is an archive of the evidence:');
     renderedEvidence = smallify(5)(
     numberify(
-    archive));
+    reject(Str.empty)(
+    archive)));
     signature = smallify2(5)("I'm a bot by /u/" + recipient + ". Code viewable at github.com/" + recipient + "/" + username);
     signature = "[" + signature + "](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)";
     msg = "#&#009;\n\n###&#009;\n\n#&#009;\n\n" + disclaimer + "\n\n**Mandatory bot participation message:** I'll be " + role + "\n\n---\n\n" + declare + " " + renderedEvidence + " " + signature;
