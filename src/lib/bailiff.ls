@@ -309,7 +309,11 @@ submit-evidence-to-archive = (post, cb = id) -->
 
   ## get the link of the archived evidence
   get-redirect-link-from = (bod) ->
-    /document\.location\.replace\("(.+)"\)},1000\)/.exec bod .1
+    try
+      ret = /document\.location\.replace\("(.+)"\)},1000\)/.exec bod .1
+      return ret
+    catch
+      return ''
 
   selftext = post.selftext
 
@@ -353,7 +357,6 @@ submit-evidence-to-archive = (post, cb = id) -->
     """
     reply-to post.name, msg
 
-
 get-evidence-from = (selftext) ->
   rx = /^\[EXHIBIT [A-Z]{1}\]\((.+)\)/gm
   evidence = recurse-through-re rx, selftext
@@ -362,7 +365,7 @@ get-evidence-from = (selftext) ->
 report-evidence-to-court = (archive, post) ->
   role = get-random-element-from roles
   declare = smallify2(5) 'The following is an archive of the evidence:'
-  rendered-evidence = archive |> numberify |> smallify(5)
+  rendered-evidence = archive |> reject Str.empty |> numberify |> smallify(5)
   signature = smallify2(5) "I'm a bot by /u/#recipient. Code viewable at github.com/#recipient/#username"
   signature = "[#signature](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)"
 
