@@ -27,7 +27,7 @@ require! {
     have-we-replied-here
     have-we-posted-here
   }
-  './strings': {smallify, bulletify, numberify}
+  './strings': {smallify, smallify2, bulletify, numberify}
   './mail': Inbox
 }
 settings = settings.modules.bailiff
@@ -44,16 +44,25 @@ spoiler = (link, spoiler) -> "[#link](\#s '#spoiler')"
 
 secret-message = (str) -> "[](\##str)"
 
+disclaimer = """
+**Reminder:** This is a [no-downvote zone](https://www.reddit.com/r/KarmaCourt/wiki/constitution\#wiki_article_vi._the_bill_of_rights)!
+Also, Karma Court is [funny satire](https://www.reddit.com/r/KarmaCourt/wiki/constitution\#wiki_article_iv._karmacourt_is_funny_satire).
+"""
+
+acceptable-responders =
+  * recipient
+  * 'TheGrandDalaiKarma'
+
 ## some people hate bots, so this humanizes it a little bit
 roles =
   * "the guy who plays AC/DC in the back of the room," +
     " not paying attention to the trial."
-  * "Zoidberg (\/)(°,,,°)(\/)"
+  * "Zoidberg (\\/)(°,,,°)(\\/)"
   * "the guy who gasps at the inhumanity ⊙▃⊙"
   * "the guy who stands in the back," +
     " wearing sunglasses and saying nothing (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄"
   * "a teddy bear! ʕ´•ᴥ•`ʔ"
-  * "Homer J. Simpson ~(8 ^(| )"
+  * "Homer J. Simpson ~(8 &\#94;(| )"
   * "sitting in the corner, not doing anything, not doing anything at all ..."
   * "Groot. **I AM GROOT.**"
   * "the guy who sells combination Indian/Pakistani/Mexican food." +
@@ -167,7 +176,7 @@ check-mail = ->
     if res.status-code isnt 200 => return say "Error: #{res.status-code}, inbox.getReplies"
 
     ## someone responded to one of our comments, let's see if it confirmed the info we got
-    bod |> filter (.new) |> filter (.author is recipient) |> map confirm-case
+    bod |> filter (.new) |> filter (.author in acceptable-responders) |> map route-message # map confirm-case
 
 confirm-case = (reply) ->
 
@@ -264,14 +273,47 @@ check-case = (pm) ->
   else
     say 'bad defendants or charges'
 
+## MESSAGE ROUTING
+## -------------
+## Unfortunately only the summoner checks mail, but some people want the ability
+## remove archivist posts by response. Hence we need to reroute the appropriate
+## message replies to an archivist function that can check for deletion.
+
+route-message = (reply) ->
+  if reply.body is 'delete'
+    delete-archivist reply
+  else if reply.author is recipient
+    confirm-case reply
+  else
+    return
+
 ## ARCHIVIST
 ## ---------
+
+## We don't actually delete the message, because if we did then on the next
+## archivist cycle it would just get posted again.
+# FIXME: implement some kind of memory, using some kind of a database or shit.
+delete-archivist = (reply) ->
+  msg = """
+  **EDIT:** DISREGARD THIS MESSAGE I AM A STUPID BOT
+  """
+  opts =
+    api_type: 'json'
+    thing_id: reply.parent_id
+    text: msg
+  robot.post '/api/editusertext', opts
+  say "Editing #{reply.parent_id}"
+  inbox.read reply
 
 submit-evidence-to-archive = (post, cb = id) -->
 
   ## get the link of the archived evidence
   get-redirect-link-from = (bod) ->
-    /document\.location\.replace\("(.+)"\)},1000\)/.exec bod .1
+    try
+      ret = /document\.location\.replace\("(.+)"\)},1000\)/.exec bod .1
+      return ret
+    catch
+      return ''
 
   selftext = post.selftext
 
@@ -281,7 +323,7 @@ submit-evidence-to-archive = (post, cb = id) -->
   evidence = get-evidence-from selftext
   archived-evidence = []
 
-  for let url in evidence
+  if not empty evidence then for let url in evidence
     say "making request to archive.today"
     params =
       url: 'https://archive.today/submit/'
@@ -297,6 +339,23 @@ submit-evidence-to-archive = (post, cb = id) -->
       archived-evidence.push get-redirect-link-from bod
       ## we don't finish until the last evidence has been archived
       if archived-evidence `same-length` evidence => cb archived-evidence
+  else
+    sign = smallify2(5) "I'm a bot by /u/#recipient. This action was done automatically as a reminder of KarmaCourt's principles."
+    sign = "[#sign](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)"
+    msg = """
+    #&#009;
+
+    ###&#009;
+
+    #&#009;
+
+    #disclaimer
+
+    ---
+
+    #sign
+    """
+    reply-to post.name, msg
 
 get-evidence-from = (selftext) ->
   rx = /^\[EXHIBIT [A-Z]{1}\]\((.+)\)/gm
@@ -304,23 +363,24 @@ get-evidence-from = (selftext) ->
   return evidence
 
 report-evidence-to-court = (archive, post) ->
-  my = spoiler "I'll be" "IAMA BOT, AMA"
   role = get-random-element-from roles
-  declare = smallify(5) <[ The following is an archive of the evidence: ]>
-  rendered-evidence = archive |> numberify |> smallify(5)
-  signature = smallify(5) [
-    * \This
-    * \bot
-    * \by
-    * "/u/#recipient."
-    * \Code
-    * \viewable
-    * \at
-    * "github.com/#recipient/#username"
-  ]
+  declare = smallify2(5) 'The following is an archive of the evidence:'
+  rendered-evidence = archive |> reject Str.empty |> numberify |> smallify(5)
+  signature = smallify2(5) "I'm a bot by /u/#recipient. Code viewable at github.com/#recipient/#username"
+  signature = "[#signature](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)"
 
   msg = """
-  #my #role
+  #&#009;
+
+  ###&#009;
+
+  #&#009;
+
+  #disclaimer
+
+  **Mandatory bot participation message:** I'll be #role
+
+  ---
 
   #declare #rendered-evidence #signature
   """

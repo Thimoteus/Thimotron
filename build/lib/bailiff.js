@@ -1,9 +1,9 @@
 (function(){
-  var request, ref$, settings, repeatFn, recipient, robot, say, simplifyListing, sendPm, replyTo, recurseThroughRe, haveWeRepliedHere, haveWePostedHere, smallify, bulletify, numberify, Inbox, subreddit, username, inbox, sameLength, substr, spoiler, secretMessage, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
+  var request, ref$, settings, repeatFn, recipient, robot, say, simplifyListing, sendPm, replyTo, recurseThroughRe, haveWeRepliedHere, haveWePostedHere, smallify, smallify2, bulletify, numberify, Inbox, subreddit, username, inbox, sameLength, substr, spoiler, secretMessage, disclaimer, acceptableResponders, roles, getRandomElementFrom, getDefendantsFromTitle, getChargesFromBody, getDefendantsFromConfirmation, getChargesFromConfirmation, summonsText, sendSummons, declareBailiffnessToCourt, checkMail, confirmCase, checkCase, routeMessage, deleteArchivist, submitEvidenceToArchive, getEvidenceFrom, reportEvidenceToCourt, processCases, bailiff, slice$ = [].slice;
   import$(global, require('prelude-ls'));
   request = require('request');
   ref$ = require('./core'), settings = ref$.settings, repeatFn = ref$.repeatFn, recipient = ref$.recipient, robot = ref$.robot, say = ref$.say, simplifyListing = ref$.simplifyListing, sendPm = ref$.sendPm, replyTo = ref$.replyTo, recurseThroughRe = ref$.recurseThroughRe, haveWeRepliedHere = ref$.haveWeRepliedHere, haveWePostedHere = ref$.haveWePostedHere;
-  ref$ = require('./strings'), smallify = ref$.smallify, bulletify = ref$.bulletify, numberify = ref$.numberify;
+  ref$ = require('./strings'), smallify = ref$.smallify, smallify2 = ref$.smallify2, bulletify = ref$.bulletify, numberify = ref$.numberify;
   Inbox = require('./mail');
   settings = settings.modules.bailiff;
   subreddit = settings.subreddit;
@@ -23,7 +23,9 @@
   secretMessage = function(str){
     return "[](#" + str + ")";
   };
-  roles = ["the guy who plays AC/DC in the back of the room," + " not paying attention to the trial.", "Zoidberg (/)(°,,,°)(/)", "the guy who gasps at the inhumanity ⊙▃⊙", "the guy who stands in the back," + " wearing sunglasses and saying nothing (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄", "a teddy bear! ʕ´•ᴥ•`ʔ", "Homer J. Simpson ~(8 ^(| )", "sitting in the corner, not doing anything, not doing anything at all ...", "Groot. **I AM GROOT.**", "the guy who sells combination Indian/Pakistani/Mexican food." + " But only dishes that combine all three.", "the world's smallest violinist, playing the world's largest violin ♫", "someone who tells you how good cake is," + " while his mouth is full of cake. MM, MM.", "Maximus Decimus Meridius," + " father to a murdered son, husband to a murdered wife." + " And I will have my vengeance, in this life or the next.", "the guy who [spoils](#s 'Snape kills Dumbledore') Harry Potter.", "the guy who [spoils](#s 'Jesus dies') Passion of the Christ.", "the guy who [spoils](#s 'Darth Vader is Luke's father') Star Wars."];
+  disclaimer = "**Reminder:** This is a [no-downvote zone](https://www.reddit.com/r/KarmaCourt/wiki/constitution#wiki_article_vi._the_bill_of_rights)!\nAlso, Karma Court is [funny satire](https://www.reddit.com/r/KarmaCourt/wiki/constitution#wiki_article_iv._karmacourt_is_funny_satire).";
+  acceptableResponders = [recipient, 'TheGrandDalaiKarma'];
+  roles = ["the guy who plays AC/DC in the back of the room," + " not paying attention to the trial.", "Zoidberg (\\/)(°,,,°)(\\/)", "the guy who gasps at the inhumanity ⊙▃⊙", "the guy who stands in the back," + " wearing sunglasses and saying nothing (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄", "a teddy bear! ʕ´•ᴥ•`ʔ", "Homer J. Simpson ~(8 &#94;(| )", "sitting in the corner, not doing anything, not doing anything at all ...", "Groot. **I AM GROOT.**", "the guy who sells combination Indian/Pakistani/Mexican food." + " But only dishes that combine all three.", "the world's smallest violinist, playing the world's largest violin ♫", "someone who tells you how good cake is," + " while his mouth is full of cake. MM, MM.", "Maximus Decimus Meridius," + " father to a murdered son, husband to a murdered wife." + " And I will have my vengeance, in this life or the next.", "the guy who [spoils](#s 'Snape kills Dumbledore') Harry Potter.", "the guy who [spoils](#s 'Jesus dies') Passion of the Christ.", "the guy who [spoils](#s 'Darth Vader is Luke's father') Star Wars."];
   getRandomElementFrom = function(list){
     var ind;
     ind = floor(Math.random() * list.length);
@@ -108,9 +110,9 @@
       if (res.statusCode !== 200) {
         return say("Error: " + res.statusCode + ", inbox.getReplies");
       }
-      return map(confirmCase)(
+      return map(routeMessage)(
       filter(function(it){
-        return it.author === recipient;
+        return in$(it.author, acceptableResponders);
       })(
       filter(function(it){
         return it['new'];
@@ -200,24 +202,57 @@
       }
     });
   };
+  routeMessage = function(reply){
+    if (reply.body === 'delete') {
+      return deleteArchivist(reply);
+    } else if (reply.author === recipient) {
+      return confirmCase(reply);
+    } else {}
+  };
+  deleteArchivist = function(reply){
+    var msg, opts;
+    msg = "**EDIT:** DISREGARD THIS MESSAGE I AM A STUPID BOT";
+    opts = {
+      api_type: 'json',
+      thing_id: reply.parent_id,
+      text: msg
+    };
+    robot.post('/api/editusertext', opts);
+    say("Editing " + reply.parent_id);
+    return inbox.read(reply);
+  };
   submitEvidenceToArchive = curry$(function(post, cb){
     var getRedirectLinkFrom, selftext;
     cb == null && (cb = id);
     getRedirectLinkFrom = function(bod){
-      return /document\.location\.replace\("(.+)"\)},1000\)/.exec(bod)[1];
+      var ret, e;
+      try {
+        ret = /document\.location\.replace\("(.+)"\)},1000\)/.exec(bod)[1];
+        return ret;
+      } catch (e$) {
+        e = e$;
+        return '';
+      }
     };
     selftext = post.selftext;
     return haveWePostedHere(post, '', function(weHave){
-      var evidence, archivedEvidence, i$, len$, results$ = [];
+      var evidence, archivedEvidence, i$, len$, sign, msg, results$ = [];
       if (weHave) {
         return;
       }
       evidence = getEvidenceFrom(selftext);
       archivedEvidence = [];
-      for (i$ = 0, len$ = evidence.length; i$ < len$; ++i$) {
-        results$.push((fn$.call(this, evidence[i$])));
+      if (!empty(evidence)) {
+        for (i$ = 0, len$ = evidence.length; i$ < len$; ++i$) {
+          results$.push((fn$.call(this, evidence[i$])));
+        }
+        return results$;
+      } else {
+        sign = smallify2(5)("I'm a bot by /u/" + recipient + ". This action was done automatically as a reminder of KarmaCourt's principles.");
+        sign = "[" + sign + "](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)";
+        msg = "#&#009;\n\n###&#009;\n\n#&#009;\n\n" + disclaimer + "\n\n---\n\n" + sign;
+        return replyTo(post.name, msg);
       }
-      return results$;
       function fn$(url){
         var params;
         say("making request to archive.today");
@@ -250,15 +285,16 @@
     return evidence;
   };
   reportEvidenceToCourt = function(archive, post){
-    var my, role, declare, renderedEvidence, signature, msg;
-    my = spoiler("I'll be", "IAMA BOT, AMA");
+    var role, declare, renderedEvidence, signature, msg;
     role = getRandomElementFrom(roles);
-    declare = smallify(5)(['The', 'following', 'is', 'an', 'archive', 'of', 'the', 'evidence:']);
+    declare = smallify2(5)('The following is an archive of the evidence:');
     renderedEvidence = smallify(5)(
     numberify(
-    archive));
-    signature = smallify(5)(['This', 'bot', 'by', "/u/" + recipient + ".", 'Code', 'viewable', 'at', "github.com/" + recipient + "/" + username]);
-    msg = "" + my + " " + role + "\n\n" + declare + " " + renderedEvidence + " " + signature;
+    reject(Str.empty)(
+    archive)));
+    signature = smallify2(5)("I'm a bot by /u/" + recipient + ". Code viewable at github.com/" + recipient + "/" + username);
+    signature = "[" + signature + "](http://i1.theportalwiki.net/img/5/50/Announcer_testchamber09.wav)";
+    msg = "#&#009;\n\n###&#009;\n\n#&#009;\n\n" + disclaimer + "\n\n**Mandatory bot participation message:** I'll be " + role + "\n\n---\n\n" + declare + " " + renderedEvidence + " " + signature;
     return replyTo(post.name, msg);
   };
   processCases = function(){
@@ -311,5 +347,10 @@
       } : f;
     };
     return _curry();
+  }
+  function in$(x, xs){
+    var i = -1, l = xs.length >>> 0;
+    while (++i < l) if (x === xs[i]) return true;
+    return false;
   }
 }).call(this);
